@@ -5,6 +5,7 @@
   "main": "plugin.js",
   "scripts": {
     "start": "parcel lara-plugin.ts --global learnrLaraPlugin",
+    "build": "parcel build lara-plugin.ts --global learnrLaraPlugin",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Doug Martin",
