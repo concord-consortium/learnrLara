@@ -1,4 +1,4 @@
-name: Interactive Tutorial
-description: > 
-  Interactive tutorial containing figures, videos, R exercises and quiz questions.
+name: Interactive LARA Tutorial
+description: >
+  Interactive Lara tutorial containing figures, videos, R exercises and quiz questions.
 create_dir: true
