@@ -707,6 +707,7 @@ Tutorial.prototype.$initializeExercises = function() {
 
   this.$initializeExerciseEditors();
   this.$initializeExerciseSolutions();
+  this.$initializeExerciseHints();
   this.$initializeExerciseEvaluation();
 
   this.$logTiming("initialized-exercises");
@@ -738,6 +739,19 @@ Tutorial.prototype.$exerciseSolutionCode = function(label) {
 
 Tutorial.prototype.$exerciseCheckCode = function(label) {
   return this.$exerciseSupportCode(label + "-check");
+};
+
+Tutorial.prototype.$exerciseSolutionDiv = function(label) {
+
+  // look for a div w/ hint id
+  var id = "section-" + label + "-solution";
+  var solutionDiv = $('div#' + id);
+
+  // ensure it isn't a section then return
+  if (solutionDiv.length > 0 && !solutionDiv.hasClass('section'))
+    return solutionDiv;
+  else
+    return null;
 };
 
 Tutorial.prototype.$exerciseHintDiv = function(label) {
@@ -866,8 +880,14 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
     // when we receive focus hide solutions in other exercises
     exercise.on('focusin', function() {
       $('.btn-tutorial-solution').each(function() {
-        if (exercise.has($(this)).length === 0)
+        if (exercise.has($(this)).length === 0) {
           thiz.$removeSolution(thiz.$exerciseContainer($(this)));
+        }
+      });
+      $('.btn-tutorial-hint').each(function() {
+        if (exercise.has($(this)).length === 0) {
+          thiz.$removeHints(thiz.$exerciseContainer($(this)));
+        }
       });
     });
 
@@ -925,6 +945,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       button.attr('data-icon', icon);
       button.on('click', function() {
         thiz.$removeSolution(exercise);
+        thiz.$removeHints(exercise);
         thiz.$showExerciseProgress(label, button, true);
       });
       panel_heading.append(button);
@@ -939,9 +960,6 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       button.append(' Help');
       button.attr('title', 'Help');
       button.attr('data-icon', 'fa-question-circle');
-      button.on('click', function() {
-        debugger;
-      });
       panel_heading.append(button);
       return button;
     }
@@ -1039,7 +1057,8 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
     updateAceHeight();
     editor.getSession().on('change', updateAceHeight);
 
-    // add hint/solution/startover buttons if necessary
+    // add solution buttons if necessary
+    thiz.$addHints(exercise, panel_heading, editor);
     thiz.$addSolution(exercise, panel_heading, editor);
 
     exercise.parents('.section').on('shown', function() {
@@ -1067,6 +1086,19 @@ Tutorial.prototype.$initializeExerciseSolutions = function() {
   });
 };
 
+Tutorial.prototype.$initializeExerciseHints = function() {
+
+  // alias this
+  var thiz = this;
+
+  // hide hints when clicking outside exercises
+  $(document).on('mouseup', function(ev) {
+    var exercise = thiz.$exerciseContainer(ev.target);
+    if (exercise.length === 0) {
+      thiz.$forEachExercise(thiz.$removeHints);
+    }
+  });
+};
 
 // add a solution for the specified exercise label
 Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
@@ -1077,14 +1109,8 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
   // get label
   var label = exercise.attr('data-label');
 
-  // solution/hints (in the presence of hints convert solution to last hint)
   var solution = thiz.$exerciseSolutionCode(label);
-  var hints = thiz.$exerciseHintsCode(label);
-  if (hints !== null && solution !== null) {
-    hints.push(solution);
-    solution = null;
-  }
-  var hintDiv = thiz.$exerciseHintDiv(label);
+  var solutionDiv = thiz.$exerciseSolutionDiv(label);
 
   // function to add a helper button
   function addHelperButton(icon, caption) {
@@ -1097,100 +1123,74 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
     return button;
   }
 
-  // function to add a hint button
-  function addHintButton(caption) {
+  // function to add a solution button
+  function addSolutionButton(caption) {
     return addHelperButton("fa-lightbulb-o", caption);
   }
 
-  // helper function to record solution/hint requests
-  function recordHintRequest(index) {
+  // helper function to record solution requests
+  function recordSolutionRequest(index) {
     thiz.$recordEvent(label, "exercise_hint", {
-      type: solution !== null ? "solution" : "hint",
-      index: hintIndex
+      type: "solution",
+      index: 0
     });
   }
 
-  // add a startover button
-  if (editor.tutorial.startover_code !== null) {
-    var startOverButton = addHelperButton("fa-refresh", "Start Over");
-    startOverButton.on('click', function() {
-      if (thiz.isExploreMode() || confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
-        editor.setValue(editor.tutorial.startover_code, -1);
-        thiz.$clearExerciseOutput(exercise);
-      }
-    });
-  }
+  // if we have a solution div
+  if (solutionDiv != null) {
 
-  // if we have a hint div
-  if (hintDiv != null) {
+    // mark the div as a solution and hide it
+    solutionDiv.addClass('tutorial-solution');
+    solutionDiv.css('display', 'none');
 
-    // mark the div as a hint and hide it
-    hintDiv.addClass('tutorial-hint');
-    hintDiv.css('display', 'none');
+    // create solution button
+    var button = addSolutionButton("Solution");
 
-    // create hint button
-    var button = addHintButton("Hint");
-
-    // handle showing and hiding the hint
+    // handle showing and hiding the solution
     button.on('click', function() {
 
-      // record the request
-      recordHintRequest(0);
+      // hide hints if showing
+      thiz.$removeHints(exercise);
 
-      // prepend it to the output frame (if a hint isn't already in there)
+      // record the request
+      recordSolutionRequest(0);
+
+      // prepend it to the output frame (if a solution isn't already in there)
       var outputFrame = exercise.children('.tutorial-exercise-output-frame');
-      if (outputFrame.find('.tutorial-hint').length == 0) {
-        var panel = $('<div class="panel panel-default tutorial-hint-panel"></div>');
+      if (outputFrame.find('.tutorial-solution').length == 0) {
+        var panel = $('<div class="panel panel-default tutorial-solution-panel"></div>');
         var panelBody = $('<div class="panel-body"></div>');
-        var hintDivClone = hintDiv.clone().attr('id', '').css('display', 'inherit');
-        panelBody.append(hintDivClone);
+        var solutionDivClone = solutionDiv.clone().attr('id', '').css('display', 'inherit');
+        panelBody.append(solutionDivClone);
         panel.append(panelBody);
         outputFrame.prepend(panel);
       } else {
-        outputFrame.find('.tutorial-hint-panel').remove();
+        outputFrame.find('.tutorial-soution-panel').remove();
       }
     });
 
   }
 
-  // else if we have a solution or hints
-  else if (solution || hints) {
+  // else if we have a solution
+  else if (solution) {
 
     // determine caption
-    var caption = null;
-    if (solution) {
-      caption = "Solution";
-    }
-    else {
-      if (hints.length > 1)
-        caption = "Hints";
-      else
-        caption = "Hint";
-    }
+    var caption = "Solution";
 
     // determine editor lines
-    var editorLines = thiz.kMinLines;
-    if (solution)
-      editorLines = Math.max(thiz.$countLines(solution), editorLines);
-    else {
-      for (var i = 0; i<hints.length; i++)
-        editorLines = Math.max(thiz.$countLines(hints[i]), editorLines);
-    }
-
-    // track hint index
-    var hintIndex = 0;
+    var editorLines = Math.max(thiz.$countLines(solution), editorLines);
 
     // create solution buttion
-    var button = addHintButton(caption);
+    var button = addSolutionButton(caption);
 
     // handle showing and hiding the popover
     button.on('click', function() {
 
-      // record the request
-      recordHintRequest(hintIndex);
+      // remove hints if showing
+      thiz.$removeHints(exercise);
 
-      // determine solution text
-      var solutionText = solution !== null ? solution : hints[hintIndex];
+      // record the request
+      recordSolutionRequest(0);
 
       var visible = button.next('div.popover:visible').length > 0;
       if (!visible) {
@@ -1201,7 +1201,7 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
                     '<div class="popover-title tutorial-panel-heading"></div>' +
                     '<div class="popover-content"></div>' +
                     '</div>',
-          content: solutionText,
+          content: solution,
           trigger: "manual"
         });
         popover.on('inserted.bs.popover', function() {
@@ -1212,7 +1212,7 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
           var content = popoverTip.find('.popover-content');
 
           // adjust editor and container height
-          var solutionEditor = thiz.$attachAceEditor(content.get(0), solutionText);
+          var solutionEditor = thiz.$attachAceEditor(content.get(0), solution);
           solutionEditor.setReadOnly(true);
           solutionEditor.setOptions({
             minLines: editorLines
@@ -1222,23 +1222,6 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
 
           // get title panel
           var popoverTitle = popoverTip.find('.popover-title');
-
-          // add next hint button if we have > 1 hint
-          if (solution === null && hints.length > 1) {
-            var nextHintButton = $('<a class="btn btn-light btn-xs btn-tutorial-next-hint"></a>');
-            nextHintButton.append("Next Hint ");
-            nextHintButton.append($('<i class="fa fa-angle-double-right"></i>'));
-            nextHintButton.on('click', function() {
-              hintIndex = hintIndex + 1;
-              solutionEditor.setValue(hints[hintIndex], -1);
-              if (hintIndex == (hints.length-1))
-                nextHintButton.addClass('disabled');
-              recordHintRequest(hintIndex);
-            });
-            if (hintIndex == (hints.length-1))
-              nextHintButton.addClass('disabled');
-            popoverTitle.append(nextHintButton);
-          }
 
           // add copy button
           var copyButton = $('<a class="btn btn-info btn-xs ' +
@@ -1279,6 +1262,223 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
   }
 };
 
+// add hints for the specified exercise label
+Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
+
+  // alias this
+  var thiz = this;
+
+  // get label
+  var label = exercise.attr('data-label');
+
+  var hints = thiz.$exerciseHintsCode(label);
+  var hintDiv = thiz.$exerciseHintDiv(label);
+
+  // function to add a helper button
+  function addHelperButton(icon, caption) {
+    var button = $('<a class="btn btn-light btn-xs btn-tutorial-hint"></a>');
+    button.attr('role', 'button');
+    button.attr('title', caption);
+    button.append($('<i class="fa ' + icon + '"></i>'));
+    button.append(' ' + caption);
+    panel_heading.append(button);
+    return button;
+  }
+
+  // function to add a hint button
+  function addHintButton(caption) {
+    return addHelperButton("fa-lightbulb-o", caption);
+  }
+
+  // helper function to record hint requests
+  function recordHintRequest(index) {
+    thiz.$recordEvent(label, "exercise_hint", {
+      type: "hint",
+      index: hintIndex
+    });
+  }
+
+  // add a startover button
+  if (editor.tutorial.startover_code !== null) {
+    var startOverButton = addHelperButton("fa-refresh", "Start Over");
+    startOverButton.on('click', function() {
+      if (thiz.isExploreMode() || confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
+        editor.setValue(editor.tutorial.startover_code, -1);
+        thiz.$clearExerciseOutput(exercise);
+      }
+    });
+  }
+
+  // if we have a hint div
+  if (hintDiv != null) {
+
+    // mark the div as a hint and hide it
+    hintDiv.addClass('tutorial-hint');
+    hintDiv.css('display', 'none');
+
+    // create hint button
+    var button = addHintButton("Hint");
+
+    // handle showing and hiding the hint
+    button.on('click', function() {
+
+      // hide solution if is is showing
+      thiz.$removeSolution(exercise);
+
+      // record the request
+      recordHintRequest(0);
+
+      // prepend it to the output frame (if a hint isn't already in there)
+      var outputFrame = exercise.children('.tutorial-exercise-output-frame');
+      if (outputFrame.find('.tutorial-hint').length == 0) {
+        var panel = $('<div class="panel panel-default tutorial-hint-panel"></div>');
+        var panelBody = $('<div class="panel-body"></div>');
+        var hintDivClone = hintDiv.clone().attr('id', '').css('display', 'inherit');
+        panelBody.append(hintDivClone);
+        panel.append(panelBody);
+        outputFrame.prepend(panel);
+      } else {
+        outputFrame.find('.tutorial-hint-panel').remove();
+      }
+    });
+
+  }
+
+  // else if we have hints
+  else if (hints) {
+
+    // determine caption
+    var caption = null;
+    if (hints.length > 1)
+      caption = "Hints";
+    else
+      caption = "Hint";
+
+    // determine editor lines
+    var editorLines = thiz.kMinLines;
+    for (var i = 0; i<hints.length; i++)
+      editorLines = Math.max(thiz.$countLines(hints[i]), editorLines);
+
+    // track hint index
+    var hintIndex = 0;
+
+    // create hint buttion
+    var button = addHintButton(caption);
+
+    // handle showing and hiding the popover
+    button.on('click', function() {
+
+      // hint solution if is it showing
+      thiz.$removeSolution(exercise);
+
+      // record the request
+      recordHintRequest(hintIndex);
+
+      // determine hint text
+      var hintText = hints[hintIndex];
+
+      var visible = button.next('div.popover:visible').length > 0;
+      if (!visible) {
+        var popover = button.popover({
+          placement: 'bottom',
+          template: '<div class="popover tutorial-hint-popover" role="tooltip">' +
+                    '<div class="arrow"></div>' +
+                    '<div class="popover-title tutorial-panel-heading"></div>' +
+                    '<div class="popover-content"></div>' +
+                    '</div>',
+          content: hintText,
+          trigger: "manual"
+        });
+        popover.on('inserted.bs.popover', function() {
+
+          // get popover element
+          var dataPopover = popover.data('bs.popover');
+          var popoverTip = dataPopover.tip();
+          var content = popoverTip.find('.popover-content');
+
+          // adjust editor and container height
+          var hintEditor = thiz.$attachAceEditor(content.get(0), hintText);
+          hintEditor.setReadOnly(true);
+          hintEditor.setOptions({
+            minLines: editorLines
+          });
+          var height = editorLines * hintEditor.renderer.lineHeight;
+          content.css('height', height + 'px');
+
+          // get title panel
+          var popoverTitle = popoverTip.find('.popover-title');
+
+          // add prev/next hint button if we have > 1 hint
+          if (hints.length > 1) {
+            var prevHintButton = $('<a class="btn btn-light btn-xs btn-tutorial-prev-hint disabled"></a>');
+            prevHintButton.append($('<i class="fa fa-angle-double-left"></i>'));
+            prevHintButton.append(" Prev Hint");
+            prevHintButton.on('click', function() {
+              hintIndex = hintIndex - 1;
+              hintEditor.setValue(hints[hintIndex] || "", -1);
+              if (hintIndex == -1)
+                prevHintButton.addClass('disabled');
+              nextHintButton.removeClass('disabled');
+              recordHintRequest(hintIndex);
+            });
+            if (hintIndex == (hints.length-1))
+              prevHintButton.addClass('disabled');
+            popoverTitle.append(prevHintButton);
+
+            var nextHintButton = $('<a class="btn btn-light btn-xs btn-tutorial-next-hint"></a>');
+            nextHintButton.append("Next Hint ");
+            nextHintButton.append($('<i class="fa fa-angle-double-right"></i>'));
+            nextHintButton.on('click', function() {
+              hintIndex = hintIndex + 1;
+              hintEditor.setValue(hints[hintIndex], -1);
+              if (hintIndex == (hints.length-1))
+                nextHintButton.addClass('disabled');
+              prevHintButton.removeClass('disabled');
+              recordHintRequest(hintIndex);
+            });
+            if (hintIndex == (hints.length-1))
+              nextHintButton.addClass('disabled');
+            popoverTitle.append(nextHintButton);
+          }
+
+          // add copy button
+          var copyButton = $('<a class="btn btn-info btn-xs ' +
+                             'btn-tutorial-copy-hint pull-right"></a>');
+          copyButton.append($('<i class="fa fa-copy"></i>'));
+          copyButton.append(" Copy to Clipboard");
+          popoverTitle.append(copyButton);
+          var clipboard = new Clipboard(copyButton[0], {
+            text: function(trigger) {
+              return hintEditor.getValue();
+            }
+          });
+          clipboard.on('success', function(e) {
+            thiz.$removeHints(exercise);
+            editor.focus();
+          });
+          copyButton.data('clipboard', clipboard);
+
+        });
+        button.popover('show');
+
+        // left position of popover and arrow
+        var popoverElement = exercise.find('.tutorial-hint-popover');
+        popoverElement.css('left', button.position().left);
+        var popoverArrow = popoverElement.find('.arrow');
+        popoverArrow.css('left', 15 /* button margin */ + (button.outerWidth()/2) + 'px');
+
+        // scroll into view if necessary
+        thiz.scrollIntoView(popoverElement);
+      }
+      else {
+        thiz.$removeHints(exercise);
+      }
+
+      // always refocus editor
+      editor.focus();
+    });
+  }
+};
 
 
 // remove a solution for an exercise
@@ -1292,6 +1492,16 @@ Tutorial.prototype.$removeSolution = function(exercise) {
   exercise.find('.btn-tutorial-solution').popover('destroy');
 };
 
+// remove a solution for an exercise
+Tutorial.prototype.$removeHints = function(exercise) {
+  // destory clipboardjs object if we've got one
+  var solutionButton = exercise.find('.btn-tutorial-copy-hint');
+  if (solutionButton.length > 0)
+    solutionButton.data('clipboard').destroy();
+
+  // destroy popover
+  exercise.find('.btn-tutorial-hint').popover('destroy');
+};
 
 /* Exercise evaluation */
 

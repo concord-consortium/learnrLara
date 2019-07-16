@@ -65,14 +65,17 @@
 }
 
 
-.tutorial-solution-popover {
+.tutorial-solution-popover,
+.tutorial-hint-popover {
   max-width: none;
   right: 10px;
 }
 
-.tutorial-solution-popover.top>.arrow {
+.tutorial-solution-popover.top>.arrow,
+.tutorial-hint-popover.top>.arrow {
   margin-left: 0;
 }
+
 
 .tutorial-hint {
 
