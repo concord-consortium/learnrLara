@@ -1,7 +1,10 @@
 ---
 title: "Tutorial"
-output: learnr::tutorial
+output: learnrLara::tutorial
 runtime: shiny_prerendered
+options:
+  show_left_nav: false
+  mode: exercise
 ---
 
 ```{r setup, include=FALSE}
@@ -12,7 +15,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## Topic 1
 
-### Exercise 
+### Exercise
 
 *Here's a simple exercise with an empty code chunk provided for entering the answer.*
 
@@ -30,7 +33,7 @@ Now write a function that adds any two numbers and then call it:
 
 ```{r add-function, exercise=TRUE, exercise.lines = 5}
 add <- function() {
-  
+
 }
 ```
 
