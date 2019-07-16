@@ -1187,7 +1187,7 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
       var visible = button.next('div.popover:visible').length > 0;
       if (!visible) {
         var popover = button.popover({
-          placement: 'top',
+          placement: 'bottom',
           template: '<div class="popover tutorial-solution-popover" role="tooltip">' +
                     '<div class="arrow"></div>' +
                     '<div class="popover-title tutorial-panel-heading"></div>' +
@@ -1254,9 +1254,9 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
 
         // left position of popover and arrow
         var popoverElement = exercise.find('.tutorial-solution-popover');
-        popoverElement.css('left', '0');
+        popoverElement.css('left', button.position().left);
         var popoverArrow = popoverElement.find('.arrow');
-        popoverArrow.css('left', button.position().left + (button.outerWidth()/2) + 'px');
+        popoverArrow.css('left', 15 /* button margin */ + (button.outerWidth()/2) + 'px');
 
         // scroll into view if necessary
         thiz.scrollIntoView(popoverElement);

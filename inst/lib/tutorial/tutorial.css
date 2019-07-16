@@ -41,7 +41,7 @@
 }
 
 .tutorial-exercise-input .btn-tutorial-solution {
-  margin-left: 15px;  
+  margin-left: 15px;
 }
 
 .tutorial-exercise-input .btn-tutorial-next-hint {
@@ -67,7 +67,7 @@
 
 .tutorial-solution-popover {
   max-width: none;
-  width: 100%;
+  right: 10px;
 }
 
 .tutorial-solution-popover.top>.arrow {
