@@ -28,15 +28,17 @@ interface AceEditor {
 }
 
 interface InitOptions {
-  laraIntegration: boolean;
+  mode: "explore" | "exercise" | "assessment";
   tutorial: Tutorial;
 }
 
 export const init = (options: InitOptions) => {
 
+  const exploreMode = options.mode === "explore";
+
   const phone = iframePhone.getIFrameEndpoint();
 
-  if (options.laraIntegration) {
+  if (!exploreMode) {
     phone.addListener("initInteractive", (data: InitInteractiveData) => {
       if (data.interactiveState) {
         try {
@@ -57,7 +59,7 @@ export const init = (options: InitOptions) => {
   phone.post("supportedFeatures", {
     apiVersion: 1,
     features: {
-      interactiveState: options.laraIntegration,
+      interactiveState: !exploreMode,
       // aspectRatio: TODO
     }
   });

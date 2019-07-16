@@ -250,9 +250,9 @@ $else$
 <script src="https://coder4math.concord.org/lara-plugin.js"></script>
 $endif$
 <script type="text/javascript">
-  jQuery(document).ready(function() {
+  $$(document).ready(function() {
     learnrLaraPlugin.init({
-      laraIntegration: $if(options.lara_integration)$true$else$false$endif$,
+      mode: $if(options.mode)$"$options.mode$"$else$undefined$endif$,
       tutorial: window.tutorial
     });
   });
