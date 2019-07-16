@@ -4,7 +4,7 @@
 var HELP_URL = "https://docs.google.com/document/d/e/2PACX-1vS13Z2rfxDY0TGphW1JeQuzytde9Pt6TCWmRkw3YYf2LjspdS7Ysx5CQSiNv67ulflNSFSOhdkVYjxp/pub";
 
 $(document).ready(function() {
-  var tutorial = new Tutorial();
+  var tutorial = new Tutorial(window.tutorialMode);
 
   // register autocompletion if available
   if (typeof TutorialCompleter !== "undefined")
@@ -20,10 +20,12 @@ $(document).ready(function() {
 // this var lets us know if the Shiny server is ready to handle http requests
 var tutorial_isServerAvailable = false;
 
-function Tutorial() {
+function Tutorial(mode) {
 
   // Alias this
   var thiz = this;
+
+  this.mode = mode || "explore";
 
   // Init timing log
   this.$initTimingLog();
@@ -74,6 +76,10 @@ function Tutorial() {
 }
 
 /* Utilities */
+
+Tutorial.prototype.isExploreMode = function() {
+  return this.mode === "explore";
+}
 
 Tutorial.prototype.$initTimingLog = function() {
   try {
@@ -1108,8 +1114,10 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
   if (editor.tutorial.startover_code !== null) {
     var startOverButton = addHelperButton("fa-refresh", "Start Over");
     startOverButton.on('click', function() {
-      editor.setValue(editor.tutorial.startover_code, -1);
-      thiz.$clearExerciseOutput(exercise);
+      if (thiz.isExploreMode() || confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
+        editor.setValue(editor.tutorial.startover_code, -1);
+        thiz.$clearExerciseOutput(exercise);
+      }
     });
   }
 

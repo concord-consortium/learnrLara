@@ -250,9 +250,12 @@ $else$
 <script src="https://coder4math.concord.org/lara-plugin.js"></script>
 $endif$
 <script type="text/javascript">
+  // set mode used in tutorial.js
+  window.tutorialMode = $if(options.mode)$"$options.mode$"$else$undefined$endif$;
+
   $$(document).ready(function() {
     learnrLaraPlugin.init({
-      mode: $if(options.mode)$"$options.mode$"$else$undefined$endif$,
+      mode: window.tutorialMode,
       tutorial: window.tutorial
     });
   });
