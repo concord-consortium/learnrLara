@@ -1,6 +1,8 @@
 
 /* Tutorial construction and initialization */
 
+var HELP_URL = "https://docs.google.com/document/d/e/2PACX-1vS13Z2rfxDY0TGphW1JeQuzytde9Pt6TCWmRkw3YYf2LjspdS7Ysx5CQSiNv67ulflNSFSOhdkVYjxp/pub";
+
 $(document).ready(function() {
   var tutorial = new Tutorial();
 
@@ -922,6 +924,23 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       panel_heading.append(button);
       return button;
     }
+
+    // function to add a help button
+    function add_help_button() {
+      var button = $('<a class="btn btn-info btn-xs pull-right" target="_blank" href="' + HELP_URL + '"></a>');
+      button.append($('<i class="fa fa-question-circle"></i>'));
+      button.attr('type', 'button');
+      button.append(' Help');
+      button.attr('title', 'Help');
+      button.attr('data-icon', 'fa-question-circle');
+      button.on('click', function() {
+        debugger;
+      });
+      panel_heading.append(button);
+      return button;
+    }
+
+    add_help_button();
 
     // create submit answer button if checks are enabled
     if (thiz.$exerciseCheckCode(label) !== null)
