@@ -244,12 +244,10 @@ $$(document).ready(function () {
 </script>
 $endif$
 
-$if(false)$
-<script src="https://coder4math.concord.org/lara-plugin.js"></script>
-$else$
-<!-- set the if condition to false above to use localhost based plugin for development-->
-<!-- to start plugin change to lara-plugin directory and run `npm start` -->
+$if(options.dev_mode)$
 <script src="http://localhost:1234/lara-plugin.js"></script>
+$else$
+<script src="https://coder4math.concord.org/lara-plugin.js"></script>
 $endif$
 <script type="text/javascript">
   jQuery(document).ready(function() {
