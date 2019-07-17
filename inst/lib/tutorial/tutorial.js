@@ -1302,7 +1302,7 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
   if (editor.tutorial.startover_code !== null) {
     var startOverButton = addHelperButton("fa-refresh", "Start Over");
     startOverButton.on('click', function() {
-      if (thiz.isExploreMode() || confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
+      if (confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
         editor.setValue(editor.tutorial.startover_code, -1);
         thiz.$clearExerciseOutput(exercise);
       }
