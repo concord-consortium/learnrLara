@@ -134,6 +134,26 @@ $for(css)$
 <link rel="stylesheet" href="$css$" $if(html5)$$else$type="text/css" $endif$/>
 $endfor$
 
+$if(options.dev_mode)$
+<link rel="stylesheet" href="http://localhost:1234/lara-plugin.css"/>
+<script src="http://localhost:1234/lara-plugin.js"></script>
+$else$
+<link rel="stylesheet" href="https://learnrlara.concord.org/lara-plugin.css"/>
+<script src="https://learnrlara.concord.org/lara-plugin.js"></script>
+$endif$
+<script type="text/javascript">
+  // set mode used in tutorial.js
+  window.tutorialMode = $if(options.mode)$"$options.mode$"$else$undefined$endif$;
+
+  $$(document).ready(function() {
+    learnrLaraPlugin.init({
+      mode: window.tutorialMode,
+      tutorial: window.tutorial
+    });
+  });
+</script>
+
+
 </head>
 
 <body>
@@ -243,23 +263,6 @@ $$(document).ready(function () {
 });
 </script>
 $endif$
-
-$if(options.dev_mode)$
-<script src="http://localhost:1234/lara-plugin.js"></script>
-$else$
-<script src="https://coder4math.concord.org/lara-plugin.js"></script>
-$endif$
-<script type="text/javascript">
-  // set mode used in tutorial.js
-  window.tutorialMode = $if(options.mode)$"$options.mode$"$else$undefined$endif$;
-
-  $$(document).ready(function() {
-    learnrLaraPlugin.init({
-      mode: window.tutorialMode,
-      tutorial: window.tutorial
-    });
-  });
-</script>
 
 </body>
 

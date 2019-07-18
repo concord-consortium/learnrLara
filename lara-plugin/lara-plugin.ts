@@ -1,5 +1,15 @@
 import iframePhone from "iframe-phone"
 
+// loaded here so that we can update the tutorial css and js remotely so that we don't have to republish the activities
+// NOTE: the order of the files is important - don't change it
+import "./tutorial/tutorial.css";
+import "./tutorial/tutorial-format.css";
+import "./tutorial/rstudio-theme.css";
+import "./tutorial/tutorial.js";
+import "./tutorial/tutorial-autocompletion.js";
+import "./tutorial/tutorial-diagnostics";
+import "./tutorial/tutorial-format.js";
+
 declare const ace: any;
 
 interface Tutorial {
