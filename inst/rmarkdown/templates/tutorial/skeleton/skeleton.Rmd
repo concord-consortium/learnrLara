@@ -8,7 +8,7 @@ options:
 ---
 
 ```{r setup, include=FALSE}
-library(learnr)
+library(learnrLara)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
