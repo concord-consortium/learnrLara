@@ -138,8 +138,8 @@ $if(options.dev_mode)$
 <link rel="stylesheet" href="http://localhost:1234/lara-plugin.css"/>
 <script src="http://localhost:1234/lara-plugin.js"></script>
 $else$
-<link rel="stylesheet" href="https://learnrlara.concord.org/lara-plugin.css"/>
-<script src="https://learnrlara.concord.org/lara-plugin.js"></script>
+<link rel="stylesheet" href="https://learnrlara.concord.org$if(options.plugin_path)$$options.plugin_path$$endif$/lara-plugin.css"/>
+<script src="https://learnrlara.concord.org$if(options.plugin_path)$$options.plugin_path$$endif$/lara-plugin.js"></script>
 $endif$
 <script type="text/javascript">
   // set mode used in tutorial.js
