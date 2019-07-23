@@ -73,6 +73,20 @@ function Tutorial(mode) {
   thiz.$initializeVideos();
   thiz.$initializeExercises();
   thiz.$initializeServer();
+
+  // setup pub/sub
+  this.eventListeners = [];
+  this.$addEventListener = function (listener) {
+    thiz.eventListeners.push(listener);
+  }
+  this.$emitEvent = function (event) {
+    thiz.eventListeners.forEach(function (listener) {
+      listener(thiz, event);
+    })
+  }
+
+  // setup custom variables
+  this.haveSubmitted = {};
 }
 
 /* Utilities */
@@ -810,6 +824,10 @@ Tutorial.prototype.$showExerciseProgress = function(label, button, show) {
   if (button === "run")
     button = exercise.find('.btn-tutorial-run').last();
 
+  // if the button is "submit" then use the submit button
+  if (button === "submit")
+    button = exercise.find('.btn-tutorial-submit').last();
+
   // show/hide progress UI
   var spinner = 'fa-spinner fa-spin fa-fw';
   if (show) {
@@ -824,6 +842,11 @@ Tutorial.prototype.$showExerciseProgress = function(label, button, show) {
   else {
     outputFrame.removeClass('recalculating');
     runButtons.removeClass('disabled');
+    if (button !== null) {
+      var runIcon = button.children('i');
+      runIcon.addClass(button.attr('data-icon'));
+      runIcon.removeClass(spinner);
+    }
     runButtons.each(function() {
       var button = $(this);
       var runIcon = button.children('i');
@@ -929,7 +952,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
     input_div.append(panel_body);
 
     // function to add a submit button
-    function add_submit_button(icon, style, text, check) {
+    function add_check_or_run_button(icon, style, text, check) {
       var button = $('<a class="btn ' + style + ' btn-xs btn-tutorial-run ' +
                        'pull-right"></a>');
       button.append($('<i class="fa ' + icon + '"></i>'));
@@ -952,6 +975,30 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       return button;
     }
 
+    // function to add submit button
+    function add_submit_button() {
+      var icon = 'fa-file-export';
+      var text = 'Submit';
+      var button = $('<a class="btn btn-primary btn-xs btn-tutorial-submit pull-right"></a>');
+      button.append($('<i class="fa ' + icon + '"></i>'));
+      button.attr('type', 'button');
+      button.append(' ' + text);
+      button.attr('title', text);
+      button.attr('data-icon', icon);
+      button.on('click', function() {
+        thiz.$removeSolution(exercise);
+        thiz.$removeHints(exercise);
+        thiz.$showExerciseProgress(label, button, true);
+        thiz.$emitEvent({
+          type: "submit",
+          label: label,
+          editor: editor
+        })
+      });
+      panel_heading.append(button);
+      return button;
+    }
+
     // function to add a help button
     function add_help_button() {
       var button = $('<a class="btn btn-info btn-xs pull-right" target="_blank" href="' + HELP_URL + '"></a>');
@@ -966,12 +1013,16 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
 
     add_help_button();
 
+    if (!thiz.isExploreMode()) {
+      add_submit_button();
+    }
+
     // create submit answer button if checks are enabled
     if (thiz.$exerciseCheckCode(label) !== null)
-      add_submit_button("fa-check-square-o", "btn-primary", "Submit Answer", true);
+    add_check_or_run_button("fa-check-square-o", "btn-primary", "Check My Work", true);
 
     // create run button
-    var run_button = add_submit_button("fa-play", "btn-success", "Run Code", false);
+    var run_button = add_check_or_run_button("fa-play", "btn-success", "Run Code", false);
 
     // create code div and add it to the input div
     var code_div = $('<div class="tutorial-exercise-code-editor"></div>');
@@ -1100,8 +1151,26 @@ Tutorial.prototype.$initializeExerciseHints = function() {
   });
 };
 
+Tutorial.prototype.$showAlerts = function (showAlerts) {
+  this.showAlerts = showAlerts;
+}
+
+Tutorial.prototype.$haveSubmitted = function (label, haveSubmitted) {
+  this.haveSubmitted[label] = haveSubmitted;
+}
+
+Tutorial.prototype.$alertIfNotSubmitted = function (label, text) {
+  if (this.showAlerts && !this.haveSubmitted[label]) {
+    alert(text);
+    return true;
+  }
+  return false;
+}
+
 // add a solution for the specified exercise label
 Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
+
+  var notSubmittedMessage = "Submit your answer and then you will see the solution.";
 
   // alias this
   var thiz = this;
@@ -1149,6 +1218,11 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
     // handle showing and hiding the solution
     button.on('click', function() {
 
+      // show alert and return if solution is overridden by plugin
+      if (thiz.$alertIfNotSubmitted(label, notSubmittedMessage)) {
+        return;
+      }
+
       // hide hints if showing
       thiz.$removeHints(exercise);
 
@@ -1185,6 +1259,11 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
 
     // handle showing and hiding the popover
     button.on('click', function() {
+
+      // show alert and return if solution is overridden by plugin
+      if (thiz.$alertIfNotSubmitted(label, notSubmittedMessage)) {
+        return;
+      }
 
       // remove hints if showing
       thiz.$removeHints(exercise);
