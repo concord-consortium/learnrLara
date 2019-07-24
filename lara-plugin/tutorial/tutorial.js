@@ -970,6 +970,11 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
         thiz.$removeSolution(exercise);
         thiz.$removeHints(exercise);
         thiz.$showExerciseProgress(label, button, true);
+        thiz.$emitEvent({
+          type: check ? "check" : "run",
+          label: label,
+          editor: editor
+        })
       });
       panel_heading.append(button);
       return button;
@@ -1007,6 +1012,13 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       button.append(' Help');
       button.attr('title', 'Help');
       button.attr('data-icon', 'fa-question-circle');
+      button.on('click', function () {
+        thiz.$emitEvent({
+          type: "help",
+          label: label
+        });
+        return true;
+      })
       panel_heading.append(button);
       return button;
     }
@@ -1043,6 +1055,22 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
 
     // activate the ace editor
     var editor = thiz.$attachAceEditor(code_id, code);
+
+    // record copy/paste events
+    editor.on("copy", function (text) {
+      thiz.$emitEvent({
+        type: "copy",
+        label: label,
+        text: text
+      });
+    });
+    editor.on("paste", function (e) {
+      thiz.$emitEvent({
+        type: "paste",
+        label: label,
+        text: e.text
+      });
+    });
 
     // get setup_code (if any)
     var setup_code = null;
@@ -1161,6 +1189,10 @@ Tutorial.prototype.$haveSubmitted = function (label, haveSubmitted) {
 
 Tutorial.prototype.$alertIfNotSubmitted = function (label, text) {
   if (this.showAlerts && !this.haveSubmitted[label]) {
+    this.$emitEvent({
+      type: "alert",
+      text: text
+    })
     alert(text);
     return true;
   }
@@ -1198,10 +1230,15 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
   }
 
   // helper function to record solution requests
-  function recordSolutionRequest(index) {
+  function recordSolutionRequest(index, show) {
     thiz.$recordEvent(label, "exercise_hint", {
       type: "solution",
       index: 0
+    });
+    thiz.$emitEvent({
+      type: "solution",
+      label: label,
+      show: show
     });
   }
 
@@ -1218,6 +1255,11 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
     // handle showing and hiding the solution
     button.on('click', function() {
 
+      // record the request
+      var outputFrame = exercise.children('.tutorial-exercise-output-frame');
+      var panelNotFound = outputFrame.find('.tutorial-solution').length == 0;
+      recordSolutionRequest(0, panelNotFound);
+
       // show alert and return if solution is overridden by plugin
       if (thiz.$alertIfNotSubmitted(label, notSubmittedMessage)) {
         return;
@@ -1226,12 +1268,8 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
       // hide hints if showing
       thiz.$removeHints(exercise);
 
-      // record the request
-      recordSolutionRequest(0);
-
       // prepend it to the output frame (if a solution isn't already in there)
-      var outputFrame = exercise.children('.tutorial-exercise-output-frame');
-      if (outputFrame.find('.tutorial-solution').length == 0) {
+      if (panelNotFound) {
         var panel = $('<div class="panel panel-default tutorial-solution-panel"></div>');
         var panelBody = $('<div class="panel-body"></div>');
         var solutionDivClone = solutionDiv.clone().attr('id', '').css('display', 'inherit');
@@ -1260,6 +1298,10 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
     // handle showing and hiding the popover
     button.on('click', function() {
 
+      // record the request
+      var visible = button.next('div.popover:visible').length > 0;
+      recordSolutionRequest(0, !visible);
+
       // show alert and return if solution is overridden by plugin
       if (thiz.$alertIfNotSubmitted(label, notSubmittedMessage)) {
         return;
@@ -1268,10 +1310,6 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
       // remove hints if showing
       thiz.$removeHints(exercise);
 
-      // record the request
-      recordSolutionRequest(0);
-
-      var visible = button.next('div.popover:visible').length > 0;
       if (!visible) {
         var popover = button.popover({
           placement: 'bottom',
@@ -1370,10 +1408,16 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
   }
 
   // helper function to record hint requests
-  function recordHintRequest(index) {
+  function recordHintRequest(index, show) {
     thiz.$recordEvent(label, "exercise_hint", {
       type: "hint",
       index: hintIndex
+    });
+    thiz.$emitEvent({
+      type: "hint",
+      label: label,
+      index: hintIndex,
+      show: show
     });
   }
 
@@ -1384,6 +1428,10 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
       if (confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
         editor.setValue(editor.tutorial.startover_code, -1);
         thiz.$clearExerciseOutput(exercise);
+        thiz.$emitEvent({
+          type: "start-over",
+          label: label
+        });
       }
     });
   }
@@ -1405,11 +1453,12 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
       thiz.$removeSolution(exercise);
 
       // record the request
-      recordHintRequest(0);
+      var outputFrame = exercise.children('.tutorial-exercise-output-frame');
+      var panelNotFound = outputFrame.find('.tutorial-hint').length == 0;
+      recordHintRequest(0, panelNotFound);
 
       // prepend it to the output frame (if a hint isn't already in there)
-      var outputFrame = exercise.children('.tutorial-exercise-output-frame');
-      if (outputFrame.find('.tutorial-hint').length == 0) {
+      if (panelNotFound) {
         var panel = $('<div class="panel panel-default tutorial-hint-panel"></div>');
         var panelBody = $('<div class="panel-body"></div>');
         var hintDivClone = hintDiv.clone().attr('id', '').css('display', 'inherit');
@@ -1451,12 +1500,12 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
       thiz.$removeSolution(exercise);
 
       // record the request
-      recordHintRequest(hintIndex);
+      var visible = button.next('div.popover:visible').length > 0;
+      recordHintRequest(hintIndex, !visible);
 
       // determine hint text
       var hintText = hints[hintIndex];
 
-      var visible = button.next('div.popover:visible').length > 0;
       if (!visible) {
         var popover = button.popover({
           placement: 'bottom',
@@ -1498,7 +1547,7 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
               if (hintIndex == -1)
                 prevHintButton.addClass('disabled');
               nextHintButton.removeClass('disabled');
-              recordHintRequest(hintIndex);
+              recordHintRequest(hintIndex, true);
             });
             if (hintIndex == (hints.length-1))
               prevHintButton.addClass('disabled');
@@ -1513,7 +1562,7 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
               if (hintIndex == (hints.length-1))
                 nextHintButton.addClass('disabled');
               prevHintButton.removeClass('disabled');
-              recordHintRequest(hintIndex);
+              recordHintRequest(hintIndex, true);
             });
             if (hintIndex == (hints.length-1))
               nextHintButton.addClass('disabled');
@@ -1708,6 +1757,12 @@ Tutorial.prototype.$initializeExerciseEvaluation = function() {
     },
 
     renderValue: function renderValue(el, data) {
+
+      thiz.$emitEvent({
+        type: "output",
+        label: exerciseLabel(el),
+        html: data.html
+      })
 
       // remove default content (if any)
       this.outputFrame(el).children().not($(el)).remove();
