@@ -1,4 +1,5 @@
 import iframePhone from "iframe-phone"
+import md5 from "md5";
 
 // loaded here so that we can update the tutorial css and js remotely so that we don't have to republish the activities
 // NOTE: the order of the files is important - don't change it
@@ -17,7 +18,58 @@ interface SubmitTutorialEvent {
   label: string;
   editor: any;
 }
-type TutorialEvent = SubmitTutorialEvent;
+interface CheckTutorialEvent {
+  type: "check";
+  label: string;
+  editor: any;
+}
+interface RunTutorialEvent {
+  type: "run";
+  label: string;
+  editor: any;
+}
+interface HelpTutorialEvent {
+  type: "help";
+  label: string;
+}
+interface StartOverTutorialEvent {
+  type: "start-over";
+  label: string;
+}
+interface HintTutorialEvent {
+  type: "hint";
+  label: string;
+  index: number;
+  show: boolean;
+}
+interface SolutionTutorialEvent {
+  type: "solution";
+  label: string;
+  show: boolean;
+}
+interface CopyTutorialEvent {
+  type: "copy";
+  label: string;
+  text: string;
+}
+interface PasteTutorialEvent {
+  type: "paste";
+  label: string;
+  text: string;
+}
+interface OutputTutorialEvent {
+  type: "output";
+  label: string;
+  html: string;
+}
+interface AlertTutorialEvent {
+  type: "alert";
+  label: string;
+  text: string;
+}
+type TutorialEvent = SubmitTutorialEvent | CheckTutorialEvent | RunTutorialEvent | HelpTutorialEvent |
+                     StartOverTutorialEvent | HintTutorialEvent | SolutionTutorialEvent | CopyTutorialEvent |
+                     PasteTutorialEvent | OutputTutorialEvent | AlertTutorialEvent;
 
 interface Tutorial {
   $forEachExercise: (callback: (el: any) => void) => void;
@@ -62,14 +114,18 @@ interface InitOptions {
   tutorial: Tutorial;
 }
 
+let exploreMode = false;
+let phone: any = null;
+
 const submittedValues: SubmittedMap = {};
+
 let postGetStateFunctions: Array<() => void> = [];
 
 export const init = (options: InitOptions) => {
   const {mode, tutorial} = options;
-  const exploreMode = mode === "explore";
 
-  const phone = iframePhone.getIFrameEndpoint();
+  exploreMode = mode === "explore";
+  phone = iframePhone.getIFrameEndpoint();
 
   if (!exploreMode) {
     // show custom alerts
@@ -148,6 +204,8 @@ const setState = (tutorial: Tutorial, state: TutorialState) => {
 };
 
 const tutorialEventListener = (tutorial: Tutorial, event: TutorialEvent) => {
+
+  // add per event plugin logic
   switch (event.type) {
     case "submit":
       const submitted = event.editor.getSession().getValue();
@@ -158,5 +216,58 @@ const tutorialEventListener = (tutorial: Tutorial, event: TutorialEvent) => {
         tutorial.$showExerciseProgress(event.label, "submit", false);
       })
       break;
+  }
+
+  // log events
+  if (!exploreMode) {
+    let log = true;
+    let eventName = event.type as string;
+    const logData: any = {
+      label: event.label
+    };
+    switch (event.type) {
+      case "submit":
+      case "check":
+      case "run":
+        logData.code = event.editor.getSession().getValue();
+        logData.hash = md5(logData.code);
+        break;
+
+      case "hint":
+        logData.index = event.index;
+        logData.show = event.show;
+        break;
+
+      case "solution":
+        logData.show = event.show;
+        break;
+
+      case "copy":
+      case "paste":
+        logData.text = event.text;
+        break;
+
+      case "alert":
+        logData.text = event.text;
+        break;
+
+      case "output":
+        // we only log errors for now, not all output
+        const el = document.createElement("div");
+        el.innerHTML = event.html;
+        const output = el.firstChild as any;
+        if (output && output.className && (output.className.indexOf("alert") !== -1)) {
+          eventName = "error";
+          logData.message = output.innerHTML;
+        }
+        else {
+          log = false;
+        }
+        break;
+    }
+    if (log) {
+      phone.post("log", eventName, logData);
+      console.log("Logged", eventName, "event", logData);
+    }
   }
 }

@@ -11,7 +11,8 @@
   "author": "Doug Martin",
   "license": "MIT",
   "dependencies": {
-    "iframe-phone": "^1.2.0"
+    "iframe-phone": "^1.2.0",
+    "md5": "^2.2.1"
   },
   "devDependencies": {
     "parcel": "^1.12.3",
