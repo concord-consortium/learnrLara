@@ -94,10 +94,14 @@ interface SubmittedMap {
 
 interface TutorialState {
   version: 1,
-  exercises: ExcerciseMap
+  exercises: ExcerciseMap,
+  lara_options: {
+    reporting_url: string
+  }
 }
 
 interface InitInteractiveData {
+  mode: "authoring" | "runtime" | "report",
   interactiveState: string | null;
 }
 
@@ -139,16 +143,20 @@ export const init = (options: InitOptions) => {
     phone.addListener("initInteractive", (data: InitInteractiveData) => {
       if (data.interactiveState) {
         try {
-          const state: TutorialState = JSON.parse(data.interactiveState);
+          const isString = typeof data.interactiveState === "string";
+          const state: TutorialState = isString ? JSON.parse(data.interactiveState) : data.interactiveState as any;
           if ((state.version === 1) && state.exercises) {
             setState(tutorial, state);
           }
         }
-        catch (e) {}
+        catch (e) {
+          alert("Unable to parse initial interactive state!");
+          console.error(e); // TODO: print stack trace
+        }
       }
     });
     phone.addListener("getInteractiveState", () => {
-      phone.post("interactiveState", JSON.stringify(getState(tutorial)));
+      phone.post("interactiveState", getState(tutorial));
     });
 
     tutorial.$addEventListener(tutorialEventListener);
@@ -176,7 +184,10 @@ const forEachExercise = (tutorial: Tutorial, callback: (label: string, editor: A
 const getState = (tutorial: Tutorial) => {
   const state: TutorialState = {
     version: 1,
-    exercises: {}
+    exercises: {},
+    lara_options: {
+      reporting_url: window.location.href
+    }
   };
   forEachExercise(tutorial, (label, editor) => {
     state.exercises[label] = {
