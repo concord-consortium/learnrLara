@@ -271,7 +271,7 @@ const tutorialEventListener = (tutorial: Tutorial, event: TutorialEvent) => {
         break;
     }
     if (log) {
-      phone.post("log", eventName, logData);
+      phone.post("log", {action: eventName, data: logData});
       console.log("Logged", eventName, "event", logData);
     }
   }
