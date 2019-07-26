@@ -77,7 +77,7 @@ interface Tutorial {
   $addEventListener: (listener: (tutorial: Tutorial, event: TutorialEvent) => void) => void;
   $haveSubmitted: (label: string, haveSubmitted: boolean) => void;
   $showAlerts: (show: boolean) => void;
-  $showExerciseProgress: (label: string, button: string, show: boolean);
+  $showExerciseProgress: (label: string, button: string, show: boolean) => void;
 }
 
 interface ExcerciseMap {
@@ -122,8 +122,6 @@ let exploreMode = false;
 let phone: any = null;
 
 const submittedValues: SubmittedMap = {};
-
-let postGetStateFunctions: Array<() => void> = [];
 
 export const init = (options: InitOptions) => {
   const {mode, tutorial} = options;
@@ -195,8 +193,6 @@ const getState = (tutorial: Tutorial) => {
       submitted: submittedValues[label] || ""
     };
   });
-  postGetStateFunctions.forEach((fn) => fn());
-  postGetStateFunctions = [];
   return state;
 };
 
@@ -222,10 +218,8 @@ const tutorialEventListener = (tutorial: Tutorial, event: TutorialEvent) => {
       const submitted = event.editor.getSession().getValue();
       submittedValues[event.label] = submitted;
       tutorial.$haveSubmitted(event.label, true);
-      postGetStateFunctions.push(() => {
-        alert("Your answer has been submitted.");
-        tutorial.$showExerciseProgress(event.label, "submit", false);
-      })
+      phone.post("interactiveState", getState(tutorial));
+      tutorial.$showExerciseProgress(event.label, "submit", false);
       break;
   }
 
