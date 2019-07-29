@@ -76,7 +76,7 @@ interface Tutorial {
   $exerciseEditor: (label: string) => any;
   $addEventListener: (listener: (tutorial: Tutorial, event: TutorialEvent) => void) => void;
   $haveSubmitted: (label: string, haveSubmitted: boolean) => void;
-  $showAlerts: (show: boolean) => void;
+  $disableSolutionIfNotSubmitted: (show: boolean) => void;
   $showExerciseProgress: (label: string, button: string, show: boolean) => void;
 }
 
@@ -131,7 +131,7 @@ export const init = (options: InitOptions) => {
 
   if (!exploreMode) {
     // show custom alerts
-    tutorial.$showAlerts(true);
+    tutorial.$disableSolutionIfNotSubmitted(true);
 
     // set the initial submission state, it will be reset in setState()
     forEachExercise(tutorial, (label, editor) => {

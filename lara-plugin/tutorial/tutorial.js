@@ -1187,16 +1187,25 @@ Tutorial.prototype.$initializeExerciseHints = function() {
   });
 };
 
-Tutorial.prototype.$showAlerts = function (showAlerts) {
-  this.showAlerts = showAlerts;
+Tutorial.prototype.$disableSolutionIfNotSubmitted = function (disableSolutionIfNotSubmitted) {
+  this.disableSolutionIfNotSubmitted = disableSolutionIfNotSubmitted;
 }
 
 Tutorial.prototype.$haveSubmitted = function (label, haveSubmitted) {
   this.haveSubmitted[label] = haveSubmitted;
+
+  var exercise = this.$exerciseForLabel(label);
+  var button = exercise.find('.btn-tutorial-solution');
+  if (haveSubmitted) {
+    button.removeClass('disabled');
+  }
+  else if (this.disableSolutionIfNotSubmitted) {
+    button.addClass('disabled');
+  }
 }
 
 Tutorial.prototype.$alertIfNotSubmitted = function (label, text) {
-  if (this.showAlerts && !this.haveSubmitted[label]) {
+  if (this.disableSolutionIfNotSubmitted && !this.haveSubmitted[label]) {
     this.$emitEvent({
       type: "alert",
       label: label,
