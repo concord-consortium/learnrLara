@@ -1191,6 +1191,7 @@ Tutorial.prototype.$alertIfNotSubmitted = function (label, text) {
   if (this.showAlerts && !this.haveSubmitted[label]) {
     this.$emitEvent({
       type: "alert",
+      label: label,
       text: text
     })
     alert(text);
