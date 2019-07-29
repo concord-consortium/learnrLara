@@ -2,6 +2,7 @@
 /* Tutorial construction and initialization */
 
 var HELP_URL = "https://docs.google.com/document/d/e/2PACX-1vS13Z2rfxDY0TGphW1JeQuzytde9Pt6TCWmRkw3YYf2LjspdS7Ysx5CQSiNv67ulflNSFSOhdkVYjxp/pub";
+var DISABLE_STORAGE = true;
 
 $(document).ready(function() {
   var tutorial = new Tutorial(window.tutorialMode);
@@ -2010,11 +2011,13 @@ Tutorial.prototype.$initializeServer = function() {
       thiz.$serverRequest("initialize", { location: window.location },
         function(response) {
           thiz.$logTiming("server-initialized");
-          // initialize storage then restore state
-          thiz.$initializeStorage(response.identifiers, function(objects) {
-            thiz.$logTiming("storage-initialized");
-            thiz.$restoreState(objects);
-          });
+          if (!DISABLE_STORAGE) {
+            // initialize storage then restore state
+            // thiz.$initializeStorage(response.identifiers, function(objects) {
+            //   thiz.$logTiming("storage-initialized");
+            //   thiz.$restoreState(objects);
+            // });
+          }
         }
       );
     }
