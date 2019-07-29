@@ -874,8 +874,16 @@ Tutorial.prototype.$attachAceEditor = function(target, code) {
   editor.session.setMode("ace/mode/r");
   editor.session.getSelection().clearSelection();
   editor.setValue(code, -1);
+  this.$markEditorAsClean(editor);
   return editor;
 };
+
+Tutorial.prototype.$markEditorAsClean = function(editor) {
+  setTimeout(function () {
+    // wait until next tick to mark as clean so any internal events in the editor are serviced (they mark it dirty)
+    editor.session.getUndoManager().markClean();
+  }, 0);
+}
 
 
 /* Exercise editor */
@@ -1426,8 +1434,10 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
   if (editor.tutorial.startover_code !== null) {
     var startOverButton = addHelperButton("fa-refresh", "Start Over", "Click here to reset your code back to the original");
     startOverButton.on('click', function() {
-      if (confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
+      var isClean = editor.session.getUndoManager().isClean();
+      if (isClean || confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
         editor.setValue(editor.tutorial.startover_code, -1);
+        thiz.$markEditorAsClean(editor);
         thiz.$clearExerciseOutput(exercise);
         thiz.$emitEvent({
           type: "start-over",
