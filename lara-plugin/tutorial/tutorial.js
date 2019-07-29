@@ -1010,7 +1010,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       button.append($('<i class="fa fa-question-circle"></i>'));
       button.attr('type', 'button');
       button.append(' Help');
-      button.attr('title', 'Help');
+      button.attr('title', 'R Help');
       button.attr('data-icon', 'fa-question-circle');
       button.on('click', function () {
         thiz.$emitEvent({
