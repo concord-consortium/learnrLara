@@ -1,4 +1,4 @@
-var TutorialDiagnostics = function(tutorial) {
+window.TutorialDiagnostics = function(tutorial) {
   this.$tutorial = tutorial;
   var self = this;
 
@@ -30,13 +30,13 @@ var TutorialDiagnostics = function(tutorial) {
   };
 
   var isSymbol = function(token) {
-    
+
     // this is a cludge so that 'in' is treated as though it were an
     // operator by the diagnostics system
     var value = token.value || "";
     if (value == "in")
       return false;
-      
+
     var type = token.type || "";
     return type == "string" ||
            type == "constant.numeric" ||
@@ -84,14 +84,14 @@ var TutorialDiagnostics = function(tutorial) {
       merge : false,
       next  : "start"
     });
-    
+
     rules["start"].unshift({
       token : "string",
       regex : "'(?:(?:\\\\.)|(?:[^'\\\\]))*?'",
       merge : false,
       next  : "start"
     });
-    
+
     rules["start"].unshift({
       token : "keyword.operator",
       regex : ":::|::|:=|%%|>=|<=|==|!=|\\->|<\\-|<<\\-|\\|\\||&&|=|\\+|\\-|\\*\\*?|/|\\^|>|<|!|&|\\||~|\\$|:|@|\\?",
@@ -139,7 +139,7 @@ var TutorialDiagnostics = function(tutorial) {
     // state related to our simple diagnostics engine
     var diagnostics = [];
     var bracketStack = [];
-    
+
     // iterate through tokens and look for invalid sequences
     for (var i = 0; i < tokens.length; i++) {
 
@@ -153,7 +153,7 @@ var TutorialDiagnostics = function(tutorial) {
         bracketStack.push(token);
         continue;
       }
-      
+
       // handle right brackets
       if (value === ")" || value === "}" || value === "]") {
 
@@ -165,7 +165,7 @@ var TutorialDiagnostics = function(tutorial) {
 
         // pop off from bracket stack and verify
         var openBracket = bracketStack.pop();
-        
+
         var ok =
           value === ")" && openBracket.value === "(" ||
           value === "]" && openBracket.value === "[" ||
