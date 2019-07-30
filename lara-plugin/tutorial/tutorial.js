@@ -1244,7 +1244,7 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
 
   // function to add a solution button
   function addSolutionButton(caption) {
-    return addHelperButton("fa-lightbulb-o", caption);
+    return addHelperButton("fa-star", caption);
   }
 
   // helper function to record solution requests
