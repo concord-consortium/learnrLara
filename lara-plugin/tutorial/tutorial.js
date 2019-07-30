@@ -2037,10 +2037,10 @@ Tutorial.prototype.$initializeServer = function() {
           thiz.$logTiming("server-initialized");
           if (!DISABLE_STORAGE) {
             // initialize storage then restore state
-            // thiz.$initializeStorage(response.identifiers, function(objects) {
-            //   thiz.$logTiming("storage-initialized");
-            //   thiz.$restoreState(objects);
-            // });
+            thiz.$initializeStorage(response.identifiers, function(objects) {
+              thiz.$logTiming("storage-initialized");
+              thiz.$restoreState(objects);
+            });
           }
         }
       );
