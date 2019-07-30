@@ -1313,7 +1313,7 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
     var caption = "Solution";
 
     // determine editor lines
-    var editorLines = Math.max(thiz.$countLines(solution), editorLines);
+    var editorLines = Math.max(thiz.$countLines(solution), thiz.kMinLines);
 
     // create solution buttion
     var button = addSolutionButton(caption);
