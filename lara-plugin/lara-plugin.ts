@@ -76,7 +76,7 @@ interface Tutorial {
   $exerciseEditor: (label: string) => any;
   $addEventListener: (listener: (tutorial: Tutorial, event: TutorialEvent) => void) => void;
   $haveSubmitted: (label: string, haveSubmitted: boolean) => void;
-  $disableSolutionIfNotSubmitted: (show: boolean) => void;
+  $disableSolutionIfNotSubmitted: (disableSolutionIfNotSubmitted: boolean) => void;
   $showExerciseProgress: (label: string, button: string, show: boolean) => void;
 }
 
