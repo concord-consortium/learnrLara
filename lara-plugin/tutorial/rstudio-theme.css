@@ -143,3 +143,8 @@ code {
 /* .tryAgainButton {
   margin-top: 10px;
 } */
+
+/* disable graph output */
+.tutorial-exercise-output pre {
+  display: none;
+}
