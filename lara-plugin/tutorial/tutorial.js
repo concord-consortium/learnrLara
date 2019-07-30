@@ -1017,7 +1017,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       var button = $('<a class="btn btn-info btn-xs pull-right" target="_blank" href="' + HELP_URL + '"></a>');
       button.append($('<i class="fa fa-question-circle"></i>'));
       button.attr('type', 'button');
-      button.append('R Help');
+      button.append(' R Help');
       button.attr('title', 'Click here to load a help page for R in another tab');
       button.attr('data-icon', 'fa-question-circle');
       button.on('click', function () {
