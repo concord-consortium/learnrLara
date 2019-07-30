@@ -74,9 +74,9 @@ code {
   color: darkslategray;
 }
 
-
-
-
+.btn-submitted {
+  background-color: #28a745;
+}
 
 /* quiz css */
 
@@ -144,3 +144,7 @@ code {
   margin-top: 10px;
 } */
 
+/* disable graph output */
+.tutorial-exercise-output pre {
+  display: none;
+}

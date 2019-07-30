@@ -2,6 +2,7 @@
 /* Tutorial construction and initialization */
 
 var HELP_URL = "https://docs.google.com/document/d/e/2PACX-1vS13Z2rfxDY0TGphW1JeQuzytde9Pt6TCWmRkw3YYf2LjspdS7Ysx5CQSiNv67ulflNSFSOhdkVYjxp/pub";
+var DISABLE_STORAGE = true;
 
 $(document).ready(function() {
   var tutorial = new Tutorial(window.tutorialMode);
@@ -873,8 +874,16 @@ Tutorial.prototype.$attachAceEditor = function(target, code) {
   editor.session.setMode("ace/mode/r");
   editor.session.getSelection().clearSelection();
   editor.setValue(code, -1);
+  this.$markEditorAsClean(editor);
   return editor;
 };
+
+Tutorial.prototype.$markEditorAsClean = function(editor) {
+  setTimeout(function () {
+    // wait until next tick to mark as clean so any internal events in the editor are serviced (they mark it dirty)
+    editor.session.getUndoManager().markClean();
+  }, 0);
+}
 
 
 /* Exercise editor */
@@ -952,14 +961,13 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
     input_div.append(panel_body);
 
     // function to add a submit button
-    function add_check_or_run_button(icon, style, text, check) {
+    function add_check_or_run_button(icon, style, text, title, check) {
       var button = $('<a class="btn ' + style + ' btn-xs btn-tutorial-run ' +
                        'pull-right"></a>');
       button.append($('<i class="fa ' + icon + '"></i>'));
       button.attr('type', 'button');
       button.append(' ' + text);
       var isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      var title = text;
       if (!check)
         title = title + " (" + (isMac ? "Cmd" : "Ctrl") + "+Shift+Enter)";
       button.attr('title', title);
@@ -988,7 +996,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       button.append($('<i class="fa ' + icon + '"></i>'));
       button.attr('type', 'button');
       button.append(' ' + text);
-      button.attr('title', text);
+      button.attr('title', "Click here to submit your code as your answer");
       button.attr('data-icon', icon);
       button.on('click', function() {
         thiz.$removeSolution(exercise);
@@ -1009,8 +1017,8 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       var button = $('<a class="btn btn-info btn-xs pull-right" target="_blank" href="' + HELP_URL + '"></a>');
       button.append($('<i class="fa fa-question-circle"></i>'));
       button.attr('type', 'button');
-      button.append(' Help');
-      button.attr('title', 'Help');
+      button.append(' R Help');
+      button.attr('title', 'Click here to load a help page for R in another tab');
       button.attr('data-icon', 'fa-question-circle');
       button.on('click', function () {
         thiz.$emitEvent({
@@ -1031,10 +1039,10 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
 
     // create submit answer button if checks are enabled
     if (thiz.$exerciseCheckCode(label) !== null)
-    add_check_or_run_button("fa-check-square-o", "btn-primary", "Check My Work", true);
+    add_check_or_run_button("fa-check-square-o", "btn-primary", "Check My Work", "Click here to see if your syntax is correct", true);
 
     // create run button
-    var run_button = add_check_or_run_button("fa-play", "btn-success", "Run Code", false);
+    var run_button = add_check_or_run_button("fa-play", "btn-success", "Run Code", "Click here to run your code and see the output", false);
 
     // create code div and add it to the input div
     var code_div = $('<div class="tutorial-exercise-code-editor"></div>');
@@ -1179,18 +1187,33 @@ Tutorial.prototype.$initializeExerciseHints = function() {
   });
 };
 
-Tutorial.prototype.$showAlerts = function (showAlerts) {
-  this.showAlerts = showAlerts;
+Tutorial.prototype.$disableSolutionIfNotSubmitted = function (disableSolutionIfNotSubmitted) {
+  this.disableSolutionIfNotSubmitted = disableSolutionIfNotSubmitted;
 }
 
 Tutorial.prototype.$haveSubmitted = function (label, haveSubmitted) {
   this.haveSubmitted[label] = haveSubmitted;
+
+  var exercise = this.$exerciseForLabel(label);
+  var solutionButton = exercise.find('.btn-tutorial-solution');
+  var submitButton = exercise.find('.btn-tutorial-submit');
+  if (haveSubmitted) {
+    solutionButton.removeClass('disabled');
+    submitButton.addClass('btn-submitted');
+  }
+  else {
+    if (this.disableSolutionIfNotSubmitted) {
+      solutionButton.addClass('disabled');
+    }
+    submitButton.removeClass('btn-submitted');
+  }
 }
 
 Tutorial.prototype.$alertIfNotSubmitted = function (label, text) {
-  if (this.showAlerts && !this.haveSubmitted[label]) {
+  if (this.disableSolutionIfNotSubmitted && !this.haveSubmitted[label]) {
     this.$emitEvent({
       type: "alert",
+      label: label,
       text: text
     })
     alert(text);
@@ -1226,7 +1249,7 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
 
   // function to add a solution button
   function addSolutionButton(caption) {
-    return addHelperButton("fa-lightbulb-o", caption);
+    return addHelperButton("fa-star", caption);
   }
 
   // helper function to record solution requests
@@ -1290,7 +1313,7 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
     var caption = "Solution";
 
     // determine editor lines
-    var editorLines = Math.max(thiz.$countLines(solution), editorLines);
+    var editorLines = Math.max(thiz.$countLines(solution), thiz.kMinLines);
 
     // create solution buttion
     var button = addSolutionButton(caption);
@@ -1392,10 +1415,10 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
   var hintDiv = thiz.$exerciseHintDiv(label);
 
   // function to add a helper button
-  function addHelperButton(icon, caption) {
+  function addHelperButton(icon, caption, title) {
     var button = $('<a class="btn btn-light btn-xs btn-tutorial-hint"></a>');
     button.attr('role', 'button');
-    button.attr('title', caption);
+    button.attr('title', title || caption);
     button.append($('<i class="fa ' + icon + '"></i>'));
     button.append(' ' + caption);
     panel_heading.append(button);
@@ -1423,10 +1446,12 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
 
   // add a startover button
   if (editor.tutorial.startover_code !== null) {
-    var startOverButton = addHelperButton("fa-refresh", "Start Over");
+    var startOverButton = addHelperButton("fa-refresh", "Start Over", "Click here to reset your code back to the original");
     startOverButton.on('click', function() {
-      if (confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
+      var isClean = editor.session.getUndoManager().isClean();
+      if (isClean || confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
         editor.setValue(editor.tutorial.startover_code, -1);
+        thiz.$markEditorAsClean(editor);
         thiz.$clearExerciseOutput(exercise);
         thiz.$emitEvent({
           type: "start-over",
@@ -2010,11 +2035,13 @@ Tutorial.prototype.$initializeServer = function() {
       thiz.$serverRequest("initialize", { location: window.location },
         function(response) {
           thiz.$logTiming("server-initialized");
-          // initialize storage then restore state
-          thiz.$initializeStorage(response.identifiers, function(objects) {
-            thiz.$logTiming("storage-initialized");
-            thiz.$restoreState(objects);
-          });
+          if (!DISABLE_STORAGE) {
+            // initialize storage then restore state
+            thiz.$initializeStorage(response.identifiers, function(objects) {
+              thiz.$logTiming("storage-initialized");
+              thiz.$restoreState(objects);
+            });
+          }
         }
       );
     }
