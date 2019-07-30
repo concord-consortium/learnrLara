@@ -107,4 +107,7 @@
   border: solid 1px #cccccc;
 }
 
-
+/* remove bottom margin of buttons in panel header */
+.tutorial-exercise-input .panel-heading .btn {
+  margin-bottom: 0;
+}
