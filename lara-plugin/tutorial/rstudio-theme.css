@@ -74,9 +74,9 @@ code {
   color: darkslategray;
 }
 
-
-
-
+.btn-submitted {
+  background-color: #28a745;
+}
 
 /* quiz css */
 
@@ -143,4 +143,3 @@ code {
 /* .tryAgainButton {
   margin-top: 10px;
 } */
-
