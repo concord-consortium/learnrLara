@@ -1195,12 +1195,17 @@ Tutorial.prototype.$haveSubmitted = function (label, haveSubmitted) {
   this.haveSubmitted[label] = haveSubmitted;
 
   var exercise = this.$exerciseForLabel(label);
-  var button = exercise.find('.btn-tutorial-solution');
+  var solutionButton = exercise.find('.btn-tutorial-solution');
+  var submitButton = exercise.find('.btn-tutorial-submit');
   if (haveSubmitted) {
-    button.removeClass('disabled');
+    solutionButton.removeClass('disabled');
+    submitButton.addClass('btn-submitted');
   }
-  else if (this.disableSolutionIfNotSubmitted) {
-    button.addClass('disabled');
+  else {
+    if (this.disableSolutionIfNotSubmitted) {
+      solutionButton.addClass('disabled');
+    }
+    submitButton.removeClass('btn-submitted');
   }
 }
 
