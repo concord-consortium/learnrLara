@@ -12,7 +12,8 @@
   "license": "MIT",
   "dependencies": {
     "iframe-phone": "^1.2.0",
-    "md5": "^2.2.1"
+    "md5": "^2.2.1",
+    "resize-observer-polyfill": "^1.5.1"
   },
   "devDependencies": {
     "parcel": "^1.12.3",
