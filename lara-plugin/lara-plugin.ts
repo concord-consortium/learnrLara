@@ -78,6 +78,10 @@ interface Tutorial {
   $haveSubmitted: (label: string, haveSubmitted: boolean) => void;
   $disableSolutionIfNotSubmitted: (disableSolutionIfNotSubmitted: boolean) => void;
   $showExerciseProgress: (label: string, button: string, show: boolean) => void;
+  $runCode: () => void;
+  serverInitialized: boolean;
+  serverInitializedCallback: () => void;
+  laraMode: LaraMode;
 }
 
 interface ExcerciseMap {
@@ -100,8 +104,10 @@ interface TutorialState {
   }
 }
 
+type LaraMode = "authoring" | "runtime" | "report";
+
 interface InitInteractiveData {
-  mode: "authoring" | "runtime" | "report",
+  mode: LaraMode,
   interactiveState: string | null;
 }
 
@@ -110,6 +116,9 @@ interface AceEditor {
     getValue: () => string;
   },
   setValue: (value: string, cursorPos: number) => void;
+  tutorial: {
+    initial_lara_value: string;
+  }
 }
 
 type TutorialMode = "explore" | "exercise" | "assessment";
@@ -138,13 +147,27 @@ export const init = (options: InitOptions) => {
       tutorial.$haveSubmitted(label, false);
     });
 
+    var reportMode = false;
     phone.addListener("initInteractive", (data: InitInteractiveData) => {
       if (data.interactiveState) {
         try {
+          tutorial.laraMode = data.mode;
+          reportMode = data.mode === "report";
+
           const isString = typeof data.interactiveState === "string";
           const state: TutorialState = isString ? JSON.parse(data.interactiveState) : data.interactiveState as any;
           if ((state.version === 1) && state.exercises) {
             setState(tutorial, state);
+          }
+          if (reportMode) {
+            if (tutorial.serverInitialized) {
+              tutorial.$runCode();
+            }
+            else {
+              tutorial.serverInitializedCallback = function () {
+                tutorial.$runCode();
+              };
+            }
           }
         }
         catch (e) {
@@ -154,7 +177,9 @@ export const init = (options: InitOptions) => {
       }
     });
     phone.addListener("getInteractiveState", () => {
-      phone.post("interactiveState", getState(tutorial));
+      if (!reportMode) {
+        phone.post("interactiveState", getState(tutorial));
+      }
     });
 
     tutorial.$addEventListener(tutorialEventListener);
@@ -200,7 +225,9 @@ const setState = (tutorial: Tutorial, state: TutorialState) => {
   forEachExercise(tutorial, (label, editor) => {
     if (state.exercises[label]) {
       if (state.exercises[label].current && editor) {
-        editor.setValue(state.exercises[label].current, -1);
+        var current = state.exercises[label].current;
+        editor.setValue(current, -1);
+        editor.tutorial.initial_lara_value = current;
       }
       if (state.exercises[label].submitted) {
         submittedValues[label] = state.exercises[label].submitted;
