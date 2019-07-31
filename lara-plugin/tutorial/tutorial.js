@@ -96,6 +96,10 @@ Tutorial.prototype.isExploreMode = function() {
   return this.mode === "explore";
 }
 
+Tutorial.prototype.isLaraReportMode = function() {
+  return this.laraMode === "report";
+}
+
 Tutorial.prototype.$initTimingLog = function() {
   try {
     if (performance.mark !== undefined) {
@@ -1157,6 +1161,13 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
   });
 };
 
+Tutorial.prototype.$runCode = function() {
+  this.$forEachExercise(function(exercise) {
+    var button = exercise.find('.btn-tutorial-run').last();
+    button.click();
+  });
+}
+
 /* Exercise solutions */
 
 Tutorial.prototype.$initializeExerciseSolutions = function() {
@@ -1450,7 +1461,8 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
     startOverButton.on('click', function() {
       var isClean = editor.session.getUndoManager().isClean();
       if (isClean || confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
-        editor.setValue(editor.tutorial.startover_code, -1);
+        var code = thiz.isLaraReportMode() ? editor.tutorial.initial_lara_value : editor.tutorial.startover_code;
+        editor.setValue(code, -1);
         thiz.$markEditorAsClean(editor);
         thiz.$clearExerciseOutput(exercise);
         thiz.$emitEvent({
@@ -2041,6 +2053,10 @@ Tutorial.prototype.$initializeServer = function() {
               thiz.$logTiming("storage-initialized");
               thiz.$restoreState(objects);
             });
+          }
+          thiz.serverInitialized = true;
+          if (thiz.serverInitializedCallback) {
+            thiz.serverInitializedCallback();
           }
         }
       );
