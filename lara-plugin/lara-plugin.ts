@@ -1,5 +1,6 @@
 import iframePhone from "iframe-phone"
 import md5 from "md5";
+import ResizeObserver from "resize-observer-polyfill";
 
 // loaded here so that we can update the tutorial css and js remotely so that we don't have to republish the activities
 // NOTE: the order of the files is important - don't change it
@@ -186,13 +187,12 @@ export const init = (options: InitOptions) => {
   }
 
   phone.initialize();
-  phone.post("supportedFeatures", {
-    apiVersion: 1,
-    features: {
-      interactiveState: !exploreMode,
-      // aspectRatio: TODO
-    }
-  });
+  // wait until editors have drawn to set aspect ratio
+  setTimeout(function () {
+    updateSupportedFeatures(true);
+  }, 1);
+
+  listenForSizeChanges();
 }
 
 const forEachExercise = (tutorial: Tutorial, callback: (label: string, editor: AceEditor | null) => void) => {
@@ -235,6 +235,40 @@ const setState = (tutorial: Tutorial, state: TutorialState) => {
     }
     tutorial.$haveSubmitted(label, state.exercises[label] && !!state.exercises[label].submitted);
   });
+};
+
+let ignoreNextResize = false;
+let lastAspectRatio = 0;
+
+const updateSupportedFeatures = (force: boolean) => {
+  const r = document.body.getBoundingClientRect();
+  const aspectRatio = r.width / r.height;
+
+  if (force || (aspectRatio !== lastAspectRatio)) {
+    lastAspectRatio = aspectRatio;
+    ignoreNextResize = true;
+
+    phone.post("supportedFeatures", {
+      apiVersion: 1,
+      features: {
+        interactiveState: !exploreMode,
+        aspectRatio
+      }
+    });
+  }
+};
+
+const listenForSizeChanges = () => {
+  const ro = new ResizeObserver((entries, observer) => {
+    // when body size changes update aspect ratio
+    // the ignoreNextResize is set before updating Lara's aspect ratio and is checked here to avoid
+    // an endless loop of resizing events
+    if (!ignoreNextResize) {
+      updateSupportedFeatures(false);
+    }
+    ignoreNextResize = false;
+  });
+  ro.observe(document.body);
 };
 
 const tutorialEventListener = (tutorial: Tutorial, event: TutorialEvent) => {
