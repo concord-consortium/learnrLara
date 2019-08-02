@@ -2,6 +2,8 @@ import iframePhone from "iframe-phone"
 import md5 from "md5";
 import ResizeObserver from "resize-observer-polyfill";
 
+import pkg from "./package.json"
+
 // loaded here so that we can update the tutorial css and js remotely so that we don't have to republish the activities
 // NOTE: the order of the files is important - don't change it
 import "./tutorial/tutorial.css";
@@ -135,6 +137,8 @@ const submittedValues: SubmittedMap = {};
 
 export const init = (options: InitOptions) => {
   const {mode, tutorial} = options;
+
+  console.info(`Initializing lara-plugin version ${pkg.version} in "${options.mode}" mode.`);
 
   exploreMode = mode === "explore";
   phone = iframePhone.getIFrameEndpoint();
