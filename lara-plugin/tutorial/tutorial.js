@@ -1000,7 +1000,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       button.append($('<i class="fa ' + icon + '"></i>'));
       button.attr('type', 'button');
       button.append(' ' + text);
-      button.attr('title', "Click here to submit your code as your answer");
+      button.attr('title', "Submit your work");
       button.attr('data-icon', icon);
       button.on('click', function() {
         thiz.$removeSolution(exercise);
@@ -1022,7 +1022,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       button.append($('<i class="fa fa-question-circle"></i>'));
       button.attr('type', 'button');
       button.append(' R Help');
-      button.attr('title', 'Click here to load a help page for R in another tab');
+      button.attr('title', 'Open R help pages in another tab');
       button.attr('data-icon', 'fa-question-circle');
       button.on('click', function () {
         thiz.$emitEvent({
@@ -1043,10 +1043,10 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
 
     // create submit answer button if checks are enabled
     if (thiz.$exerciseCheckCode(label) !== null)
-    add_check_or_run_button("fa-check-square-o", "btn-primary", "Check My Work", "Click here to see if your syntax is correct", true);
+    add_check_or_run_button("fa-check-square-o", "btn-primary", "Check My Work", "Get automatic feedback for your work", true);
 
     // create run button
-    var run_button = add_check_or_run_button("fa-play", "btn-success", "Run Code", "Click here to run your code and see the output", false);
+    var run_button = add_check_or_run_button("fa-play", "btn-success", "Run Code", "Run your code and see the output", false);
 
     // create code div and add it to the input div
     var code_div = $('<div class="tutorial-exercise-code-editor"></div>');
@@ -1248,10 +1248,10 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
   var solutionDiv = thiz.$exerciseSolutionDiv(label);
 
   // function to add a helper button
-  function addHelperButton(icon, caption) {
+  function addHelperButton(icon, caption, title) {
     var button = $('<a class="btn btn-light btn-xs btn-tutorial-solution"></a>');
     button.attr('role', 'button');
-    button.attr('title', caption);
+    button.attr('title', title);
     button.append($('<i class="fa ' + icon + '"></i>'));
     button.append(' ' + caption);
     panel_heading.append(button);
@@ -1259,8 +1259,8 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
   }
 
   // function to add a solution button
-  function addSolutionButton(caption) {
-    return addHelperButton("fa-star", caption);
+  function addSolutionButton(caption, title) {
+    return addHelperButton("fa-star", caption, title);
   }
 
   // helper function to record solution requests
@@ -1284,7 +1284,7 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
     solutionDiv.css('display', 'none');
 
     // create solution button
-    var button = addSolutionButton("Solution");
+    var button = addSolutionButton("Solution", "View solutions (available after you submit your work)");
 
     // handle showing and hiding the solution
     button.on('click', function() {
@@ -1322,12 +1322,13 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
 
     // determine caption
     var caption = "Solution";
+    var title = "View solution (available after you submit your work)";
 
     // determine editor lines
     var editorLines = Math.max(thiz.$countLines(solution), thiz.kMinLines);
 
     // create solution buttion
-    var button = addSolutionButton(caption);
+    var button = addSolutionButton(caption, title);
 
     // handle showing and hiding the popover
     button.on('click', function() {
@@ -1437,8 +1438,8 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
   }
 
   // function to add a hint button
-  function addHintButton(caption) {
-    return addHelperButton("fa-lightbulb-o", caption);
+  function addHintButton(caption, title) {
+    return addHelperButton("fa-lightbulb-o", caption, title);
   }
 
   // helper function to record hint requests
@@ -1457,7 +1458,7 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
 
   // add a startover button
   if (editor.tutorial.startover_code !== null) {
-    var startOverButton = addHelperButton("fa-refresh", "Start Over", "Click here to reset your code back to the original");
+    var startOverButton = addHelperButton("fa-refresh", "Start Over", "Restore the original sample code");
     startOverButton.on('click', function() {
       var isClean = editor.session.getUndoManager().isClean();
       if (isClean || confirm("Are you sure you want to start over?  You will lose any changes you have made.")) {
@@ -1481,7 +1482,7 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
     hintDiv.css('display', 'none');
 
     // create hint button
-    var button = addHintButton("Hint");
+    var button = addHintButton("Hints", "View hints for this task");
 
     // handle showing and hiding the hint
     button.on('click', function() {
@@ -1512,12 +1513,17 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
   // else if we have hints
   else if (hints) {
 
-    // determine caption
+    // determine caption and title
     var caption = null;
-    if (hints.length > 1)
+    var title = null;
+    if (hints.length > 1) {
       caption = "Hints";
-    else
+      title = "View hints for this task";
+    }
+    else {
       caption = "Hint";
+      title = "View a hint for this task";
+    }
 
     // determine editor lines
     var editorLines = thiz.kMinLines;
@@ -1528,7 +1534,7 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
     var hintIndex = 0;
 
     // create hint buttion
-    var button = addHintButton(caption);
+    var button = addHintButton(caption, title);
 
     // handle showing and hiding the popover
     button.on('click', function() {
