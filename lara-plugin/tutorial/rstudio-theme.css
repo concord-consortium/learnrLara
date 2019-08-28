@@ -74,7 +74,8 @@ code {
   color: darkslategray;
 }
 
-.btn-submitted {
+.btn-submitted,
+.btn-submitted:hover {
   background-color: #28a745;
 }
 
