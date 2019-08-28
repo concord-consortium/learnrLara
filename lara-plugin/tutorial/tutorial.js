@@ -1369,7 +1369,7 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
           solutionEditor.setOptions({
             minLines: editorLines
           });
-          var height = editorLines * solutionEditor.renderer.lineHeight;
+          var height = (editorLines * solutionEditor.renderer.lineHeight) + 25; // add 25 for the possible horizontal scrollbar
           content.css('height', height + 'px');
 
           // get title panel
@@ -1573,7 +1573,7 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
           hintEditor.setOptions({
             minLines: editorLines
           });
-          var height = editorLines * hintEditor.renderer.lineHeight;
+          var height = (editorLines * hintEditor.renderer.lineHeight) + 25; // add 25 for the possible horizontal scrollbar
           content.css('height', height + 'px');
 
           // get title panel
