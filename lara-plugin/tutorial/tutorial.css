@@ -111,3 +111,8 @@
 .tutorial-exercise-input .panel-heading .btn {
   margin-bottom: 0;
 }
+
+.btn-tutorial-solution.disabled {
+  background-color: #bbb;
+  pointer-events: initial !important;
+}
