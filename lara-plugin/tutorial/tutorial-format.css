@@ -27,7 +27,7 @@
 
 .topics {
   width: 75%;
-  overflow-x: auto;
+  /* overflow-x: auto; */
   padding-bottom: 40px;
 }
 
