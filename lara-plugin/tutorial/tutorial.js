@@ -1043,7 +1043,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
 
     // create submit answer button if checks are enabled
     if (thiz.$exerciseCheckCode(label) !== null)
-    add_check_or_run_button("fa-check-square-o", "btn-primary", "Check My Work", "Get automatic feedback for your work", true);
+    add_check_or_run_button("fa-thumbs-up", "btn-primary", "Check My Work", "Get automatic feedback for your work", true);
 
     // create run button
     var run_button = add_check_or_run_button("fa-play", "btn-success", "Run Code", "Run your code and see the output", false);
@@ -1208,15 +1208,25 @@ Tutorial.prototype.$haveSubmitted = function (label, haveSubmitted) {
   var exercise = this.$exerciseForLabel(label);
   var solutionButton = exercise.find('.btn-tutorial-solution');
   var submitButton = exercise.find('.btn-tutorial-submit');
+  var changeButtonLabel = function (newLabel) {
+    // toggling the icon changes the inner <i> tag of the button so
+    // we just toggle the text node after that tag
+    submitButton[0].childNodes[1].data = " " + newLabel;
+  };
+
   if (haveSubmitted) {
     solutionButton.removeClass('disabled');
     submitButton.addClass('btn-submitted');
+    submitButton.attr('data-icon', 'fa-check-square-o');
+    changeButtonLabel("Submitted");
   }
   else {
     if (this.disableSolutionIfNotSubmitted) {
       solutionButton.addClass('disabled');
     }
     submitButton.removeClass('btn-submitted');
+    submitButton.attr('data-icon', 'fa-file-export');
+    changeButtonLabel("Submit");
   }
 }
 
