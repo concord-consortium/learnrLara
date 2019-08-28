@@ -1018,7 +1018,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
 
     // function to add a help button
     function add_help_button() {
-      var button = $('<a class="btn btn-info btn-xs pull-right" target="_blank" href="' + HELP_URL + '"></a>');
+      var button = $('<a class="btn btn-info btn-xs pull-right" target="learnRLaraHelp" href="' + HELP_URL + '"></a>');
       button.append($('<i class="fa fa-question-circle"></i>'));
       button.attr('type', 'button');
       button.append(' R Help');
