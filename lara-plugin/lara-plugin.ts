@@ -193,7 +193,7 @@ export const init = (options: InitOptions) => {
   phone.initialize();
   // wait until editors have drawn to set aspect ratio
   setTimeout(function () {
-    updateSupportedFeatures(true);
+    setHeight();
   }, 1);
 
   listenForSizeChanges();
@@ -241,17 +241,14 @@ const setState = (tutorial: Tutorial, state: TutorialState) => {
   });
 };
 
+const setHeight = () => {
+  const { height } = document.body.getBoundingClientRect();
+  phone.post("height", height);
+};
+
 const listenForSizeChanges = () => {
   const ro = new ResizeObserver((entries, observer) => {
-    const { height } = document.body.getBoundingClientRect();
-
-    phone.post("supportedFeatures", {
-      apiVersion: 1,
-      features: {
-        interactiveState: !exploreMode,
-        height
-      }
-    });
+    setHeight();
   });
   ro.observe(document.body);
 };
