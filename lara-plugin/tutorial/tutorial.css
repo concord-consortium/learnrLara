@@ -1,3 +1,9 @@
+body, button, input, textarea {
+  font-family: Helvetica,Arial,sans-serif;
+}
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: Helvetica,Arial,sans-serif;
+}
 
 .tutorial-exercise-support {
   display: none;
@@ -27,11 +33,15 @@
 
 .tutorial-exercise-input .btn-xs {
   margin-right: 0;
-  margin-top: -1px;
+  margin-top: 0;
   font-size: 11px;
   margin-left: 12px;
-  padding-right: 8px;
+  padding: 3px 8px;
   font-weight: normal;
+}
+
+.btn-primary, .btn-success, .btn-info {
+  border: solid 1px #75aadb !important;
 }
 
 .btn-light {
@@ -41,7 +51,7 @@
 }
 
 .tutorial-exercise-input .btn-tutorial-solution {
-  margin-left: 15px;
+  margin-left: 12px;
 }
 
 .tutorial-exercise-input .btn-tutorial-next-hint {
@@ -49,9 +59,13 @@
   padding-right: 4px;
 }
 
+.tutorial-exercise-input .btn-tutorial-submit {
+  width: 88px;
+}
+
 .tutorial-exercise-input .btn-xs i {
   width: 10px;
-  margin-right: 1px;
+  margin-right: 2px;
 }
 
 
@@ -114,5 +128,15 @@
 
 .btn-tutorial-solution.disabled {
   background-color: #bbb;
+  border-color: #999;
+  opacity: .45;
   pointer-events: initial !important;
+}
+
+.btn-submitted, .btn-submitted:hover {
+  border-color: #28a745;
+}
+
+.tutorial-exercise-input .btn-xs.btn-tutorial-copy-solution {
+  margin-top: -4px;
 }
