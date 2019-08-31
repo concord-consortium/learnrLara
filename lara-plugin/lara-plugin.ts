@@ -191,6 +191,13 @@ export const init = (options: InitOptions) => {
   }
 
   phone.initialize();
+  phone.post("supportedFeatures", {
+    apiVersion: 1,
+    features: {
+      interactiveState: !exploreMode,
+    }
+  });
+
   // wait until editors have drawn to set aspect ratio
   setTimeout(function () {
     setHeight();
