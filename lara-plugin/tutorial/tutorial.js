@@ -1037,7 +1037,13 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
 
     add_help_button();
 
-    if (!thiz.isExploreMode()) {
+    // don't show submit by default in explore mode
+    var showSubmit = !thiz.isExploreMode();
+    if (exercise.attr('data-submit') === "0") {
+      // always hide submit if that been explictly set to 0 in the code block (exercise.submit = FALSE in markdown)
+      showSubmit = false;
+    }
+    if (showSubmit) {
       add_submit_button();
     }
 

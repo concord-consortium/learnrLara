@@ -126,6 +126,7 @@ install_knitr_hooks <- function() {
         class <- paste0("exercise", suffix)
         lines <- ifelse(is.numeric(options$exercise.lines),
                         options$exercise.lines, 0)
+        submit  <- as.numeric(options$exercise.submit %||% 1 > 0)
         completion  <- as.numeric(options$exercise.completion %||% 1 > 0)
         diagnostics <- as.numeric(options$exercise.diagnostics %||% 1 > 0)
         startover <- as.numeric(options$exercise.startover %||% 1 > 0)
@@ -136,6 +137,7 @@ install_knitr_hooks <- function() {
                '" data-completion="', completion,
                '" data-diagnostics="', diagnostics,
                '" data-startover="', startover,
+               '" data-submit="', submit,
                '" data-lines="', lines, '">')
       }
       # after exercise
