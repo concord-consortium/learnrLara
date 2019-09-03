@@ -1823,6 +1823,25 @@ Tutorial.prototype.$initializeExerciseEvaluation = function() {
       // render the content
       Shiny.renderContent(el, data);
 
+      // remove pre tags after images (they contain unneeded info about the images)
+      var i = 0;
+      var removeNextPreTag = false;
+      while (i < el.children.length) {
+        var child = el.children[i];
+        if (child.tagName === "P") {
+          if (child.firstChild && (child.firstChild.tagName === "IMG")) {
+            removeNextPreTag = true;
+          }
+        }
+        if ((child.tagName === "PRE") && removeNextPreTag) {
+          el.removeChild(child);
+          removeNextPreTag = false;
+        }
+        else {
+          i++;
+        }
+      }
+
       // bind bootstrap tables if necessary
       if (window.bootstrapStylePandocTables)
         window.bootstrapStylePandocTables();
