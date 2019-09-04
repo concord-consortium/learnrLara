@@ -1003,6 +1003,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       button.attr('title', "Submit your work");
       button.attr('data-icon', icon);
       button.on('click', function() {
+        alert("Thanks for submitting your answer! You can revise and resubmit as many times as you want. Your teacher will see your final submission.");
         thiz.$removeSolution(exercise);
         thiz.$removeHints(exercise);
         thiz.$showExerciseProgress(label, button, true);
