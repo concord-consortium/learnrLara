@@ -198,7 +198,7 @@ export const init = (options: InitOptions) => {
     }
   });
 
-  // wait until editors have drawn to set aspect ratio
+  // wait until editors have drawn to set the height
   setTimeout(function () {
     setHeight();
   }, 1);
