@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sample Lara Resizer</title>
+  <style>
+    body {
+      background: #00f;  /* to see how the iframe resizes */
+    }
+    iframe {
+      width: 100%;
+      border: 0;
+    }
+  </style>
+  <!-- in production this would be https://learnrlara.concord.org/lara-resizer.js -->
+  <script src="dist/lara-resizer.js"></script>
+</head>
+<body>
+  <h1>Exercise #1</h1>
+  <!-- NOTE: this is a R Studio debug url, the filename/port will be different on a different run with a different file -->
+  <!-- in production this would point to a src like https://rstudio-connect.concord.org/content/1/  -->
+  <iframe class="exercise" src="http://127.0.0.1:6415/TestLaraQuestion.Rmd"></iframe>
+  <h1>Exercise #2</h1>
+  <!-- NOTE: this is a R Studio debug url, the filename/port will be different on a different run with a different file -->
+  <!-- in production this would point to a src like https://rstudio-connect.concord.org/content/2/  -->
+  <iframe class="exercise" src="http://127.0.0.1:6415/TestLaraQuestion.Rmd"></iframe>
+  <script>
+    var iframes = document.getElementsByClassName("exercise");
+    learnrLaraResizer.init(iframes);
+  </script>
+<body>

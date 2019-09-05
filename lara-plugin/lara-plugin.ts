@@ -191,9 +191,16 @@ export const init = (options: InitOptions) => {
   }
 
   phone.initialize();
-  // wait until editors have drawn to set aspect ratio
+  phone.post("supportedFeatures", {
+    apiVersion: 1,
+    features: {
+      interactiveState: !exploreMode,
+    }
+  });
+
+  // wait until editors have drawn to set the height
   setTimeout(function () {
-    updateSupportedFeatures(true);
+    setHeight();
   }, 1);
 
   listenForSizeChanges();
@@ -241,36 +248,14 @@ const setState = (tutorial: Tutorial, state: TutorialState) => {
   });
 };
 
-let ignoreNextResize = false;
-let lastAspectRatio = 0;
-
-const updateSupportedFeatures = (force: boolean) => {
-  const r = document.body.getBoundingClientRect();
-  const aspectRatio = r.width / r.height;
-
-  if (force || (aspectRatio !== lastAspectRatio)) {
-    lastAspectRatio = aspectRatio;
-    ignoreNextResize = true;
-
-    phone.post("supportedFeatures", {
-      apiVersion: 1,
-      features: {
-        interactiveState: !exploreMode,
-        aspectRatio
-      }
-    });
-  }
+const setHeight = () => {
+  const { height } = document.body.getBoundingClientRect();
+  phone.post("height", height);
 };
 
 const listenForSizeChanges = () => {
   const ro = new ResizeObserver((entries, observer) => {
-    // when body size changes update aspect ratio
-    // the ignoreNextResize is set before updating Lara's aspect ratio and is checked here to avoid
-    // an endless loop of resizing events
-    if (!ignoreNextResize) {
-      updateSupportedFeatures(false);
-    }
-    ignoreNextResize = false;
+    setHeight();
   });
   ro.observe(document.body);
 };
