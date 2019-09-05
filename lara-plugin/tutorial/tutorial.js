@@ -1003,6 +1003,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
       button.attr('title', "Submit your work");
       button.attr('data-icon', icon);
       button.on('click', function() {
+        alert("Thanks for submitting your answer! You can revise and resubmit as many times as you want. Your teacher will see your final submission.");
         thiz.$removeSolution(exercise);
         thiz.$removeHints(exercise);
         thiz.$showExerciseProgress(label, button, true);
@@ -1037,7 +1038,13 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
 
     add_help_button();
 
-    if (!thiz.isExploreMode()) {
+    // don't show submit by default in explore mode
+    var showSubmit = !thiz.isExploreMode();
+    if (exercise.attr('data-submit') === "0") {
+      // always hide submit if that been explictly set to 0 in the code block (exercise.submit = FALSE in markdown)
+      showSubmit = false;
+    }
+    if (showSubmit) {
       add_submit_button();
     }
 
@@ -1822,6 +1829,25 @@ Tutorial.prototype.$initializeExerciseEvaluation = function() {
 
       // render the content
       Shiny.renderContent(el, data);
+
+      // remove pre tags after images (they contain unneeded info about the images)
+      var i = 0;
+      var removeNextPreTag = false;
+      while (i < el.children.length) {
+        var child = el.children[i];
+        if (child.tagName === "P") {
+          if (child.firstChild && (child.firstChild.tagName === "IMG")) {
+            removeNextPreTag = true;
+          }
+        }
+        if ((child.tagName === "PRE") && removeNextPreTag) {
+          el.removeChild(child);
+          removeNextPreTag = false;
+        }
+        else {
+          i++;
+        }
+      }
 
       // bind bootstrap tables if necessary
       if (window.bootstrapStylePandocTables)

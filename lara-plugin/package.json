@@ -1,11 +1,14 @@
 {
   "name": "lara-plugin",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "LearnR Lara Plugin",
   "main": "plugin.js",
   "scripts": {
     "start": "parcel lara-plugin.ts --global learnrLaraPlugin",
-    "build": "parcel build lara-plugin.ts --global learnrLaraPlugin",
+    "start:resizer": "parcel lara-resizer.ts --global learnrLaraResizer",
+    "build": "npm run build:plugin && npm run build:resizer",
+    "build:plugin": "parcel build lara-plugin.ts --global learnrLaraPlugin",
+    "build:resizer": "parcel build lara-resizer.ts --global learnrLaraResizer",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Doug Martin",
