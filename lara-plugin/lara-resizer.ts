@@ -15,6 +15,8 @@ export const init = (iframes) => {
 const listenForHeightChange = (iframe) => {
   const phone = iframePhone.ParentEndpoint(iframe);
   phone.addListener("height", (height) => {
+    const top = window.pageYOffset || document.documentElement.scrollTop;
     iframe.height = height;
+    document.documentElement.scrollTop = document.body.scrollTop = top;
   });
 }
