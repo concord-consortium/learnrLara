@@ -1397,6 +1397,9 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
           // get title panel
           var popoverTitle = popoverTip.find('.popover-title');
 
+          // remove the default title
+          popoverTitle.html("");
+
           // add copy button
           var copyButton = $('<a class="btn btn-info btn-xs ' +
                              'btn-tutorial-copy-solution pull-right"></a>');
@@ -1600,6 +1603,9 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
 
           // get title panel
           var popoverTitle = popoverTip.find('.popover-title');
+
+          // remove the default title
+          popoverTitle.html("");
 
           // add prev/next hint button if we have > 1 hint
           if (hints.length > 1) {
