@@ -1221,6 +1221,11 @@ Tutorial.prototype.$haveSubmitted = function (label, haveSubmitted) {
     submitButton[0].childNodes[1].data = " " + newLabel;
   };
 
+  // authors can hide the submit button per exercise so skip if no button found
+  if (submitButton.length === 0) {
+    return;
+  }
+
   if (haveSubmitted) {
     solutionButton.removeClass('disabled');
     submitButton.addClass('btn-submitted');
@@ -1391,6 +1396,9 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
 
           // get title panel
           var popoverTitle = popoverTip.find('.popover-title');
+
+          // remove the default title
+          popoverTitle.html("");
 
           // add copy button
           var copyButton = $('<a class="btn btn-info btn-xs ' +
@@ -1595,6 +1603,9 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
 
           // get title panel
           var popoverTitle = popoverTip.find('.popover-title');
+
+          // remove the default title
+          popoverTitle.html("");
 
           // add prev/next hint button if we have > 1 hint
           if (hints.length > 1) {
