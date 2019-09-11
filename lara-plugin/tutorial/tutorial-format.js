@@ -304,19 +304,12 @@ $(document).ready(function() {
       updateVisibilityOfTopicElements(t);
     }
 
-    /*
-
-    Removed to fix resizing within LARA
-
     function handleResize() {
       $('.topicsList').css("max-height", window.innerHeight);
     }
 
     handleResize();
     window.addEventListener("resize", handleResize);
-
-    */
-
   }
 
   // support bookmarking of topics
