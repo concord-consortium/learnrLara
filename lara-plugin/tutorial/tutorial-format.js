@@ -310,7 +310,6 @@ $(document).ready(function() {
 
     handleResize();
     window.addEventListener("resize", handleResize);
-
   }
 
   // support bookmarking of topics
