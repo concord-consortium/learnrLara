@@ -1050,7 +1050,7 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
 
     // create submit answer button if checks are enabled
     if (thiz.$exerciseCheckCode(label) !== null)
-    add_check_or_run_button("fa-thumbs-up", "btn-primary", "Check My Work", "Get automatic feedback for your work", true);
+    add_check_or_run_button("fa-magic", "btn-primary", "Check My Work", "Get automatic feedback for your work", true);
 
     // create run button
     var run_button = add_check_or_run_button("fa-play", "btn-success", "Run Code", "Run your code and see the output", false);
@@ -2122,6 +2122,3 @@ Tutorial.prototype.$initializeServer = function() {
   // call initialize function
   initializeServer();
 };
-
-
-
