@@ -222,11 +222,12 @@ evaluate_exercise <- function(exercise, envir) {
   learnr_output_handler <- evaluate::new_output_handler(value = function(x, visible) {
     last_value <<- x
 
-    if (has_visible_arg) {
-      default_output_handler$value(x, visible)
-    } else {
-      default_output_handler$value(x)
-    }
+    # disable non-graph output
+    # if (has_visible_arg) {
+    #   default_output_handler$value(x, visible)
+    # } else {
+    #   default_output_handler$value(x)
+    # }
   })
 
   evaluate_result <- NULL
