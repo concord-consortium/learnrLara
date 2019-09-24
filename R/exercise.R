@@ -119,23 +119,43 @@ evaluate_exercise <- function(exercise, envir) {
   # capture a copy of the envir before any execution is done
   envir_prep <- duplicate_env(envir)
 
+  # "global" err object to look for
+  err <- NULL
+
   # see if we need to do code checking
   if (!is.null(exercise$code_check) && !is.null(exercise$options$exercise.checker)) {
 
     # get the checker
-    checker <- eval(parse(text = exercise$options$exercise.checker), envir = envir)
+    tryCatch({
+      checker <- eval(parse(text = exercise$options$exercise.checker), envir = envir)
+    }, error = function(e) {
+      message("Error occured while retrieving 'exercise.checker'. Error:\n", e)
+      err <<- e$message
+    })
+    if (!is.null(err)) {
+      return(error_result("Error occured while retrieving 'exercise.checker'."))
+    }
+
 
     # call the checker
-    checker_feedback <- checker(
-      label = exercise$label,
-      user_code = exercise$code,
-      solution_code = exercise$solution,
-      check_code = exercise$code_check,
-      envir_result = NULL,
-      evaluate_result = NULL,
-      envir_prep = envir_prep,
-      last_value = NULL
-    )
+    tryCatch({
+      checker_feedback <- checker(
+        label = exercise$label,
+        user_code = exercise$code,
+        solution_code = exercise$solution,
+        check_code = exercise$code_check,
+        envir_result = NULL,
+        evaluate_result = NULL,
+        envir_prep = envir_prep,
+        last_value = NULL
+      )
+    }, error = function(e) {
+      err <<- e$message
+      message("Error occured while evaluating initial 'exercise.checker'. Error:\n", e)
+    })
+    if (!is.null(err)) {
+      return(error_result("Error occured while evaluating initial 'exercise.checker'."))
+    }
 
     # if it's an 'incorrect' feedback result then return it
     if (is.list(checker_feedback)) {
@@ -217,17 +237,21 @@ evaluate_exercise <- function(exercise, envir) {
   #   only has one argument, only visible values are handled; if it has more
   #   arguments, the second argument indicates whether the value is visible.
   last_value <- NULL
+  last_value_is_visible <- TRUE
   default_output_handler <- evaluate::new_output_handler()
   has_visible_arg <- length(formals(default_output_handler$value)) > 1
   learnr_output_handler <- evaluate::new_output_handler(value = function(x, visible) {
     last_value <<- x
-
-    # disable non-graph output
-    # if (has_visible_arg) {
-    #   default_output_handler$value(x, visible)
-    # } else {
-    #   default_output_handler$value(x)
-    # }
+    last_value_is_visible <<- visible
+    if (has_visible_arg) {
+      default_output_handler$value(x, visible)
+    } else {
+      if (visible) {
+        default_output_handler$value(x)
+      } else {
+        invisible()
+      }
+    }
   })
 
   evaluate_result <- NULL
@@ -251,8 +275,6 @@ evaluate_exercise <- function(exercise, envir) {
   )
 
   # knit the Rmd to markdown (catch and report errors)
-  error_message <- NULL
-  error_html <- NULL
   tryCatch({
     output_file <- rmarkdown::render(input = exercise_rmd,
                                      output_format = output_format,
@@ -262,14 +284,15 @@ evaluate_exercise <- function(exercise, envir) {
                                      run_pandoc = FALSE)
   }, error = function(e) {
     # make the time limit error message a bit more friendly
-    error_message <<- e$message
+    err <<- e$message
     pattern <- gettext("reached elapsed time limit", domain="R")
     if (regexpr(pattern, error_message) != -1L) {
-      error_message <<- timeout_error_message()
+      err <<- timeout_error_message()
     }
   })
-  if (!is.null(error_message))
-    return(error_result(error_message))
+  if (!is.null(err)) {
+    return(error_result(err))
+  }
 
   # capture and filter dependencies
   dependencies <- attr(output_file, "knit_meta")
@@ -291,35 +314,73 @@ evaluate_exercise <- function(exercise, envir) {
   )
 
   # get the exercise checker (default does nothing)
-  checker <- eval(parse(text = knitr::opts_chunk$get("exercise.checker")),
-                  envir = envir)
-  if (is.null(exercise$check) || is.null(checker))
+  err <- NULL
+  tryCatch({
+    checker <- eval(parse(text = knitr::opts_chunk$get("exercise.checker")),
+                    envir = envir)
+  }, error = function(e) {
+    message("Error occured while parsing chunk option 'exercise.checker'. Error:\n", e)
+    err <<- e$message
+  })
+  if (!is.null(err)) {
+    return(error_result("Error occured while parsing chunk option 'exercise.checker'."))
+  }
+
+  checker_fn_does_not_exist <- is.null(exercise$check) || is.null(checker)
+  if (checker_fn_does_not_exist)
     checker <- function(...) { NULL }
 
   # call the checker
-  checker_feedback <- checker(
-    label = exercise$label,
-    user_code = exercise$code,
-    solution_code = exercise$solution,
-    check_code = exercise$check,
-    envir_result = envir,
-    evaluate_result = evaluate_result,
-    envir_prep = envir_prep,
-    last_value = last_value
-  )
+  tryCatch({
+    checker_feedback <- checker(
+      label = exercise$label,
+      user_code = exercise$code,
+      solution_code = exercise$solution,
+      check_code = exercise$check,
+      envir_result = envir,
+      evaluate_result = evaluate_result,
+      envir_prep = envir_prep,
+      last_value = last_value
+    )
+  }, error = function(e) {
+    err <<- e$message
+    message("Error occured while evaluating 'exercise.checker'. Error:\n", e)
+  })
+  if (!is.null(err)) {
+    return(error_result("Error occured while evaluating 'exercise.checker'."))
+  }
 
   # validate the feedback
   feedback_validated(checker_feedback)
 
   # amend output with feedback as required
-  if (!is.null(checker_feedback)) {
-    feedback_html <- feedback_as_html(checker_feedback)
-    if (checker_feedback$location == "append")
+  feedback_html <-
+    if (!is.null(checker_feedback)) {
+      feedback_as_html(checker_feedback)
+    } else {
+      NULL
+    }
+
+  if (
+    # if the last value was invisible
+    !last_value_is_visible &&
+    # if the checker function exists
+    !checker_fn_does_not_exist
+  ) {
+    # works with NULL feedback
+    feedback_html <- htmltools::tagList(feedback_html, invisible_feedback())
+  }
+
+  if (!is.null(feedback_html)) {
+    # if no feedback, append invisible_feedback
+    feedback_location <- checker_feedback$location %||% "append"
+    if (feedback_location == "append") {
       html_output <- htmltools::tagList(html_output, feedback_html)
-    else if (checker_feedback$location == "prepend")
+    } else if (feedback_location == "prepend") {
       html_output <- htmltools::tagList(feedback_html, html_output)
-    else if (checker_feedback$location == "replace")
+    } else if (feedback_location == "replace") {
       html_output <- feedback_html
+    }
   }
 
   # return a list with the various results of the expression
@@ -342,6 +403,18 @@ error_result <- function(error_message) {
     feedback = NULL,
     error_message = error_message,
     html_output = error_message_html(error_message)
+  )
+}
+invisible_feedback <- function() {
+  feedback_as_html(
+    feedback_validated(
+      list(
+        message = "Last value being used to check answer is invisible. See `?invisible` for more information",
+        type = "warning",
+        correct = FALSE,
+        location = "append"
+      )
+    )
   )
 }
 
