@@ -1389,10 +1389,15 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
           var solutionEditor = thiz.$attachAceEditor(content.get(0), solution);
           solutionEditor.setReadOnly(true);
           solutionEditor.setOptions({
-            minLines: editorLines
+            minLines: editorLines,
+            maxLines: Infinity, // setting maxLines auto adjusts the height to fit the content
+            wrap: true
           });
-          var height = (editorLines * solutionEditor.renderer.lineHeight) + 25; // add 25 for the possible horizontal scrollbar
-          content.css('height', height + 'px');
+
+          // force a redraw to fix initial line wrapping
+          setTimeout(function () {
+            solutionEditor.resize();
+          }, 1);
 
           // get title panel
           var popoverTitle = popoverTip.find('.popover-title');
@@ -1596,10 +1601,15 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
           var hintEditor = thiz.$attachAceEditor(content.get(0), hintText);
           hintEditor.setReadOnly(true);
           hintEditor.setOptions({
-            minLines: editorLines
+            minLines: editorLines,
+            maxLines: Infinity, // setting maxLines auto adjusts the height to fit the content
+            wrap: true
           });
-          var height = (editorLines * hintEditor.renderer.lineHeight) + 25; // add 25 for the possible horizontal scrollbar
-          content.css('height', height + 'px');
+
+          // force a redraw to fix initial line wrapping
+          setTimeout(function () {
+            hintEditor.resize();
+          }, 1);
 
           // get title panel
           var popoverTitle = popoverTip.find('.popover-title');
