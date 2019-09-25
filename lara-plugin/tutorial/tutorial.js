@@ -1406,11 +1406,13 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
           popoverTitle.html("");
 
           // add copy button
+          var buttonHeader = $('<div class="text-right">');
           var copyButton = $('<a class="btn btn-info btn-xs ' +
-                             'btn-tutorial-copy-solution pull-right"></a>');
+                             'btn-tutorial-copy-solution"></a>');
           copyButton.append($('<i class="fa fa-copy"></i>'));
           copyButton.append(" Copy to Clipboard");
-          popoverTitle.append(copyButton);
+          buttonHeader.append(copyButton);
+          popoverTitle.append(buttonHeader);
           var clipboard = new Clipboard(copyButton[0], {
             text: function(trigger) {
               return solutionEditor.getValue();
