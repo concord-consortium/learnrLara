@@ -26,7 +26,7 @@
 #' @export
 #' @importFrom utils getFromNamespace
 tutorial <- function(fig_width = 6.5,
-                     fig_height = 4,
+                     fig_height = 5.0895,  # to make inner rect the golden ratio
                      fig_retina = 2,
                      fig_caption = TRUE,
                      progressive = FALSE,
