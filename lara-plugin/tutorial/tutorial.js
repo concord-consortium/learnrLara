@@ -1389,10 +1389,15 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
           var solutionEditor = thiz.$attachAceEditor(content.get(0), solution);
           solutionEditor.setReadOnly(true);
           solutionEditor.setOptions({
-            minLines: editorLines
+            minLines: editorLines,
+            maxLines: Infinity, // setting maxLines auto adjusts the height to fit the content
+            wrap: true
           });
-          var height = (editorLines * solutionEditor.renderer.lineHeight) + 25; // add 25 for the possible horizontal scrollbar
-          content.css('height', height + 'px');
+
+          // force a redraw to fix initial line wrapping
+          setTimeout(function () {
+            solutionEditor.resize();
+          }, 1);
 
           // get title panel
           var popoverTitle = popoverTip.find('.popover-title');
@@ -1401,11 +1406,13 @@ Tutorial.prototype.$addSolution = function(exercise, panel_heading, editor) {
           popoverTitle.html("");
 
           // add copy button
+          var buttonHeader = $('<div class="text-right">');
           var copyButton = $('<a class="btn btn-info btn-xs ' +
-                             'btn-tutorial-copy-solution pull-right"></a>');
+                             'btn-tutorial-copy-solution"></a>');
           copyButton.append($('<i class="fa fa-copy"></i>'));
           copyButton.append(" Copy to Clipboard");
-          popoverTitle.append(copyButton);
+          buttonHeader.append(copyButton);
+          popoverTitle.append(buttonHeader);
           var clipboard = new Clipboard(copyButton[0], {
             text: function(trigger) {
               return solutionEditor.getValue();
@@ -1596,10 +1603,15 @@ Tutorial.prototype.$addHints = function(exercise, panel_heading, editor) {
           var hintEditor = thiz.$attachAceEditor(content.get(0), hintText);
           hintEditor.setReadOnly(true);
           hintEditor.setOptions({
-            minLines: editorLines
+            minLines: editorLines,
+            maxLines: Infinity, // setting maxLines auto adjusts the height to fit the content
+            wrap: true
           });
-          var height = (editorLines * hintEditor.renderer.lineHeight) + 25; // add 25 for the possible horizontal scrollbar
-          content.css('height', height + 'px');
+
+          // force a redraw to fix initial line wrapping
+          setTimeout(function () {
+            hintEditor.resize();
+          }, 1);
 
           // get title panel
           var popoverTitle = popoverTip.find('.popover-title');
