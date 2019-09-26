@@ -1074,6 +1074,9 @@ Tutorial.prototype.$initializeExerciseEditors = function() {
 
     // activate the ace editor
     var editor = thiz.$attachAceEditor(code_id, code);
+    editor.setOptions({
+      wrap: true
+    });
 
     // record copy/paste events
     editor.on("copy", function (text) {
