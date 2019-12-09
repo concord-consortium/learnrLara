@@ -28,6 +28,10 @@ function Tutorial(mode) {
 
   this.mode = mode || "explore";
 
+  // run retry counters
+  this.RUN_RETRY_COUNT = 0;
+  this.RUN_RETRY_LIMIT = 10;
+
   // Init timing log
   this.$initTimingLog();
 
@@ -1850,6 +1854,23 @@ Tutorial.prototype.$initializeExerciseEvaluation = function() {
         html: data.html
       })
 
+      // retry run after random timeout if we get the pandoc error
+      var retryAfterTimeout = data.html.indexOf("pandoc document conversion failed") !== -1;
+      if (retryAfterTimeout) {
+        if (thiz.RUN_RETRY_COUNT < thiz.RUN_RETRY_LIMIT) {
+          var suffix = thiz.RUN_RETRY_COUNT === 0 ? "" : " (attempt " + (thiz.RUN_RETRY_COUNT + 1) + " of " + thiz.RUN_RETRY_LIMIT + ") ";
+          data.html = "<strong>Server error encountered.  Retrying on server" + suffix + "...</strong>";
+        }
+        else {
+          data.html = "<strong>Cannot get valid response from server! Please try again later.</strong>";
+          thiz.RUN_RETRY_COUNT = 0;
+          retryAfterTimeout = false;
+        }
+      }
+      else {
+        thiz.RUN_RETRY_COUNT = 0;
+      }
+
       // remove default content (if any)
       this.outputFrame(el).children().not($(el)).remove();
 
@@ -1871,6 +1892,16 @@ Tutorial.prototype.$initializeExerciseEvaluation = function() {
         thiz.$exerciseContainer(el).data('restoring', false);
       } else {
         thiz.$logTiming("restored-exericse-" + exerciseLabel(el));
+      }
+
+      if (retryAfterTimeout) {
+        // use a linear backoff with some jitter to avoid a stampede of re-requests
+        var sleep = (++thiz.RUN_RETRY_COUNT + Math.random()) * 1000;
+        setTimeout(function () {
+          var exercise = thiz.$exerciseContainer(el);
+          var run_button = exercise.find('.btn-tutorial-run');
+          run_button.trigger('click');
+        }, sleep);
       }
     },
 
